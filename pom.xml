@@ -57,6 +57,26 @@
                 <artifactId>org.wso2.carbon.identity.sso.saml.stub</artifactId>
                 <version>${inbound.auth.saml.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity</groupId>
+                <artifactId>org.wso2.carbon.identity.authenticator.saml2.sso.stub</artifactId>
+                <version>${outbound.auth.samlsso.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity</groupId>
+                <artifactId>org.wso2.carbon.identity.authenticator.saml2.sso.common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity</groupId>
+                <artifactId>org.wso2.carbon.identity.authenticator.saml2.sso</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity</groupId>
+                <artifactId>org.wso2.carbon.identity.authenticator.saml2.sso.ui</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -148,8 +168,9 @@
         <opensaml2.wso2.osgi.version.range>[2.6.0,3.0.0)</opensaml2.wso2.osgi.version.range><wss4j.version>1.5.11.wso2v13</wss4j.version>
         <wss4j.xml.security.imp.pkg.version.range>[1.4.2.patched,2.0.0)</wss4j.xml.security.imp.pkg.version.range>
         <wss4j.ws.security.imp.pkg.version.range>[1.5.11,2.0.0)</wss4j.ws.security.imp.pkg.version.range>
-        <inbound.auth.saml.version>5.0.9-SNAPSHOT</inbound.auth.saml.version>
         <javax.xml.parsers.import.pkg.version>[0.0.0, 1.0.0)</javax.xml.parsers.import.pkg.version>
+        <inbound.auth.saml.version>5.1.0</inbound.auth.saml.version>
+        <outbound.auth.samlsso.version>5.1.0</outbound.auth.samlsso.version>
     </properties>
 
 </project>
