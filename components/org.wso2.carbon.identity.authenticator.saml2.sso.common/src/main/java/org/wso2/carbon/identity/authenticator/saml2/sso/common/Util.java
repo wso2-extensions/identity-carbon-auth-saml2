@@ -23,6 +23,7 @@ import org.apache.xerces.util.SecurityManager;
 import org.apache.xml.security.c14n.Canonicalizer;
 import org.opensaml.Configuration;
 import org.opensaml.DefaultBootstrap;
+import org.opensaml.common.impl.SecureRandomIdentifierGenerator;
 import org.opensaml.saml2.core.Assertion;
 import org.opensaml.saml2.core.Attribute;
 import org.opensaml.saml2.core.AttributeStatement;
@@ -60,6 +61,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -327,21 +329,14 @@ public class Util {
      *
      * @return generated unique ID
      */
-    public static String createID() {
+    public static String createID() throws Exception {
 
-        byte[] bytes = new byte[20]; // 160 bits
-        random.nextBytes(bytes);
-
-        char[] chars = new char[40];
-
-        for (int i = 0; i < bytes.length; i++) {
-            int left = (bytes[i] >> 4) & 0x0f;
-            int right = bytes[i] & 0x0f;
-            chars[i * 2] = charMapping[left];
-            chars[i * 2 + 1] = charMapping[right];
+        try {
+            SecureRandomIdentifierGenerator generator = new SecureRandomIdentifierGenerator();
+            return generator.generateIdentifier();
+        } catch (NoSuchAlgorithmException e) {
+            throw new Exception("Error while building Secure Random ID.", e);
         }
-
-        return String.valueOf(chars);
     }
 
     /**
