@@ -335,7 +335,7 @@ public class Util {
             SecureRandomIdentifierGenerator generator = new SecureRandomIdentifierGenerator();
             return generator.generateIdentifier();
         } catch (NoSuchAlgorithmException e) {
-            throw new Exception("Error while building Secure Random ID", e);
+            throw new Exception("Error while building Secure Random ID.", e);
         }
     }
 
