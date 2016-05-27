@@ -113,16 +113,16 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
             RealmService realmService = SAML2SSOAuthBEDataHolder.getInstance().getRealmService();
             tenantDomain = MultitenantUtils.getTenantDomain(username);
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+            boolean isSignatureValid = false;
             handleAuthenticationStarted(tenantId);
-            if (isResponseSignatureValidationEnabled()) {
-                boolean isSignatureValid = validateSignature(xmlObject, tenantDomain);
-                if (!isSignatureValid) {
-                    log.error("Authentication Request is rejected. Signature validation failed.");
-                    CarbonAuthenticationUtil.onFailedAdminLogin(httpSession, username, tenantId,
-                            "SAML2 SSO Authentication", "Invalid Signature");
-                    handleAuthenticationCompleted(tenantId, false);
-                    return false;
-                }
+
+            isSignatureValid = validateSignature(xmlObject, tenantDomain);
+            if (!isSignatureValid) {
+                log.error("Authentication Request is rejected. Signature validation failed.");
+                CarbonAuthenticationUtil.onFailedAdminLogin(httpSession, username, tenantId, "SAML2 SSO Authentication",
+                        "Invalid Signature");
+                handleAuthenticationCompleted(tenantId, false);
+                return false;
             }
 
             username = MultitenantUtils.getTenantAwareUsername(username);
@@ -353,11 +353,16 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
      */
     private boolean validateSignature(XMLObject xmlObject, String domainName) {
         if (xmlObject instanceof Response) {
-            return validateSignature((Response) xmlObject, domainName);
+            if (isResponseSignatureValidationEnabled()) {
+                return validateSignature((Response) xmlObject, domainName) && validateSignature
+                        (getAssertionFromResponse((Response) xmlObject) , domainName);
+            } else {
+                return validateSignature(getAssertionFromResponse((Response) xmlObject), domainName);
+            }
         } else if (xmlObject instanceof Assertion) {
             return validateSignature((Assertion) xmlObject, domainName);
         } else {
-            log.error("Only Response and Assertion objects are validated in this authendicator");
+            log.error("Only Response and Assertion objects are validated in this authenticator");
             return false;
         }
     }
@@ -371,8 +376,8 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
      */
     private boolean validateSignature(Response response, String domainName) {
         boolean isSignatureValid = false;
-        if (response.getSignature() == null) {
-            log.error("SAML Response is not signed. So authentication process will be terminated.");
+        if (response == null || response.getSignature() == null) {
+            log.error("SAML Response is not signed or response not available. Authentication process will be terminated.");
         } else {
             isSignatureValid = validateSignature(response.getSignature(), domainName);
         }
@@ -388,8 +393,8 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
      */
     private boolean validateSignature(Assertion assertion, String domainName) {
         boolean isSignatureValid = false;
-        if (assertion.getSignature() == null) {
-            log.error("SAML Assertion is not signed. So authentication process will be terminated.");
+        if (assertion == null || assertion.getSignature() == null) {
+            log.error("SAML Assertion is not signed or assertion not available. Authentication process will be terminated.");
         } else {
             isSignatureValid = validateSignature(assertion.getSignature(), domainName);
         }
