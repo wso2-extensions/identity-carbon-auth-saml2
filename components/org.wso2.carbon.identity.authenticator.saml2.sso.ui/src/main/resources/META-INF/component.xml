@@ -26,6 +26,7 @@
                 <skip-link>../sso-acs/redirect_ajaxprocessor.jsp</skip-link>
                 <skip-link>../sso-acs/notifications.jsp</skip-link>
                 <skip-link>../sso-acs/authFailure.jsp</skip-link>
+                <skip-link>/carbon/sso-acs/authFailure.jsp</skip-link>
                 <skip-link>/acs</skip-link>
             </skip-authentication>
         </menu>
