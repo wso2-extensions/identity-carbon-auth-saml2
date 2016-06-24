@@ -60,6 +60,10 @@
             <artifactId>opensaml</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.orbit.joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.carbon.identity</groupId>
             <artifactId>org.wso2.carbon.identity.authenticator.saml2.sso.stub</artifactId>
         </dependency>
@@ -102,12 +106,9 @@
                             org.apache.commons.codec.binary; version="${commons-codec.wso2.osgi.version.range}",
                             org.apache.xml.security.*; version="${wss4j.xml.security.imp.pkg.version.range}",
                             org.opensaml.*; version="${opensaml2.wso2.osgi.version.range}",
-                            org.joda.time;version="${opensaml2.wso2.osgi.version.range}",
-
+                            org.joda.time;version="${joda.wso2.osgi.version.range}",
                             org.wso2.carbon.base; version="${carbon.base.imp.pkg.version.range}",
-
                             org.wso2.carbon.registry.core.service; version="${carbon.kernel.registry.imp.pkg.version}",
-
                             org.wso2.carbon.core.*; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.*; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.utils.*; version="${carbon.kernel.package.import.version.range}",
