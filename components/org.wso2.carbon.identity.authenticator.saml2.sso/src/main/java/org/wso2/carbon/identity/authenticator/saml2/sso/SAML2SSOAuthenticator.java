@@ -305,17 +305,46 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
             if (responseSignatureValidation != null
                     && responseSignatureValidation.equalsIgnoreCase("false")) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Signature validation is disabled in the configuration");
+                    log.debug("Response signature validation is disabled in the configuration");
                 }
                 return false;
             }
         }
         if (log.isDebugEnabled()) {
-            log.debug("Signature validation is enabled in the configuration");
+            log.debug("Response signature validation is enabled in the configuration");
         }
         return true;
     }
 
+    /**
+     * Check whether the Assertion signature validation is enabled or disabled in the authenticators.xml configuration
+     * file
+     *
+     * @return false only if SAML2SSOAuthenticator configuration has the configuration
+     * <Parameter name="AssertionSignatureValidationEnabled">false</Parameter>
+     * Otherwise returns true
+     */
+    private boolean isAssertionSignatureValidationEnabled() {
+
+        AuthenticatorsConfiguration authenticatorsConfiguration = AuthenticatorsConfiguration.getInstance();
+        AuthenticatorsConfiguration.AuthenticatorConfig authenticatorConfig =
+                authenticatorsConfiguration.getAuthenticatorConfig(
+                        AUTHENTICATOR_NAME);
+        if (authenticatorConfig != null) {
+            String assertionSignatureValidation = authenticatorConfig.getParameters().get(
+                    SAML2SSOAuthenticatorBEConstants.PropertyConfig.ASSERTION_SIGNATURE_VALIDATION_ENABLED);
+            if (assertionSignatureValidation != null && !Boolean.parseBoolean(assertionSignatureValidation)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Assertion signature validation is disabled in the configuration");
+                }
+                return false;
+            }
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Assertion signature validation is enabled in the configuration");
+        }
+        return true;
+    }
 
     /**
      * Check whether signature validation is enabled in the authenticators.xml configuration file
@@ -353,19 +382,26 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
      * @return true, if signature is valid.
      */
     private boolean validateSignature(XMLObject xmlObject, String domainName) {
+
+        boolean isValid;
         if (xmlObject instanceof Response) {
-            if (isResponseSignatureValidationEnabled()) {
-                return validateSignature((Response) xmlObject, domainName) && validateSignature
-                        (getAssertionFromResponse((Response) xmlObject) , domainName);
-            } else {
-                return validateSignature(getAssertionFromResponse((Response) xmlObject), domainName);
-            }
+            Response response = (Response) xmlObject;
+            boolean isValidResponseSignature =
+                    isResponseSignatureValidationEnabled() ? validateSignature(response, domainName) : true;
+            boolean isValidAssertionSignature = isAssertionSignatureValidationEnabled() ?
+                                                validateSignature(getAssertionFromResponse(response), domainName) :
+                                                true;
+
+            isValid = isValidResponseSignature && isValidAssertionSignature;
         } else if (xmlObject instanceof Assertion) {
-            return validateSignature((Assertion) xmlObject, domainName);
+            isValid = isAssertionSignatureValidationEnabled() ? validateSignature((Assertion) xmlObject, domainName) :
+                      true;
         } else {
+            isValid = false;
             log.error("Only Response and Assertion objects are validated in this authenticator");
-            return false;
         }
+
+        return isValid;
     }
 
     /**
