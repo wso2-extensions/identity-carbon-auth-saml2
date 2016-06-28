@@ -29,6 +29,7 @@ import org.opensaml.saml2.core.Audience;
 import org.opensaml.saml2.core.AudienceRestriction;
 import org.opensaml.saml2.core.Conditions;
 import org.opensaml.saml2.core.Response;
+import org.opensaml.security.SAMLSignatureProfileValidator;
 import org.opensaml.xml.XMLObject;
 import org.opensaml.xml.signature.Signature;
 import org.opensaml.xml.signature.SignatureValidator;
@@ -411,7 +412,10 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
     private boolean validateSignature(Signature signature, String domainName) {
         boolean isSignatureValid = false;
         try {
-            SignatureValidator validator = null;
+            SAMLSignatureProfileValidator signatureProfileValidator = new SAMLSignatureProfileValidator();
+            signatureProfileValidator.validate(signature);
+
+            SignatureValidator validator;
             if (isVerifySignWithUserDomain()) {
                 validator = new SignatureValidator(Util.getX509CredentialImplForTenant(domainName));
             } else {
