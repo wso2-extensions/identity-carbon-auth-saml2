@@ -383,25 +383,20 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
      */
     private boolean validateSignature(XMLObject xmlObject, String domainName) {
 
-        boolean isValid;
         if (xmlObject instanceof Response) {
             Response response = (Response) xmlObject;
-            boolean isValidResponseSignature =
-                    isResponseSignatureValidationEnabled() ? validateSignature(response, domainName) : true;
-            boolean isValidAssertionSignature = isAssertionSignatureValidationEnabled() ?
-                                                validateSignature(getAssertionFromResponse(response), domainName) :
-                                                true;
-
-            isValid = isValidResponseSignature && isValidAssertionSignature;
+            if (isResponseSignatureValidationEnabled() ? validateSignature(response, domainName) : true) {
+                return isAssertionSignatureValidationEnabled() ?
+                       validateSignature(getAssertionFromResponse(response), domainName) : true;
+            }
         } else if (xmlObject instanceof Assertion) {
-            isValid = isAssertionSignatureValidationEnabled() ? validateSignature((Assertion) xmlObject, domainName) :
-                      true;
+            return isAssertionSignatureValidationEnabled() ? validateSignature((Assertion) xmlObject, domainName) :
+                   true;
         } else {
-            isValid = false;
             log.error("Only Response and Assertion objects are validated in this authenticator");
         }
 
-        return isValid;
+        return false;
     }
 
     /**
