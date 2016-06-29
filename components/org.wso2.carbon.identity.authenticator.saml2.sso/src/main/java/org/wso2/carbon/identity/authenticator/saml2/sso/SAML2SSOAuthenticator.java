@@ -29,6 +29,7 @@ import org.opensaml.saml2.core.Audience;
 import org.opensaml.saml2.core.AudienceRestriction;
 import org.opensaml.saml2.core.Conditions;
 import org.opensaml.saml2.core.Response;
+import org.opensaml.security.SAMLSignatureProfileValidator;
 import org.opensaml.xml.XMLObject;
 import org.opensaml.xml.signature.Signature;
 import org.opensaml.xml.signature.SignatureValidator;
@@ -304,17 +305,46 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
             if (responseSignatureValidation != null
                     && responseSignatureValidation.equalsIgnoreCase("false")) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Signature validation is disabled in the configuration");
+                    log.debug("Response signature validation is disabled in the configuration");
                 }
                 return false;
             }
         }
         if (log.isDebugEnabled()) {
-            log.debug("Signature validation is enabled in the configuration");
+            log.debug("Response signature validation is enabled in the configuration");
         }
         return true;
     }
 
+    /**
+     * Check whether the Assertion signature validation is enabled or disabled in the authenticators.xml configuration
+     * file
+     *
+     * @return false only if SAML2SSOAuthenticator configuration has the configuration
+     * <Parameter name="AssertionSignatureValidationEnabled">false</Parameter>
+     * Otherwise returns true
+     */
+    private boolean isAssertionSignatureValidationEnabled() {
+
+        AuthenticatorsConfiguration authenticatorsConfiguration = AuthenticatorsConfiguration.getInstance();
+        AuthenticatorsConfiguration.AuthenticatorConfig authenticatorConfig =
+                authenticatorsConfiguration.getAuthenticatorConfig(
+                        AUTHENTICATOR_NAME);
+        if (authenticatorConfig != null) {
+            String assertionSignatureValidation = authenticatorConfig.getParameters().get(
+                    SAML2SSOAuthenticatorBEConstants.PropertyConfig.ASSERTION_SIGNATURE_VALIDATION_ENABLED);
+            if (assertionSignatureValidation != null && !Boolean.parseBoolean(assertionSignatureValidation)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Assertion signature validation is disabled in the configuration");
+                }
+                return false;
+            }
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Assertion signature validation is enabled in the configuration");
+        }
+        return true;
+    }
 
     /**
      * Check whether signature validation is enabled in the authenticators.xml configuration file
@@ -352,19 +382,21 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
      * @return true, if signature is valid.
      */
     private boolean validateSignature(XMLObject xmlObject, String domainName) {
+
         if (xmlObject instanceof Response) {
-            if (isResponseSignatureValidationEnabled()) {
-                return validateSignature((Response) xmlObject, domainName) && validateSignature
-                        (getAssertionFromResponse((Response) xmlObject) , domainName);
-            } else {
-                return validateSignature(getAssertionFromResponse((Response) xmlObject), domainName);
+            Response response = (Response) xmlObject;
+            if (isResponseSignatureValidationEnabled() ? validateSignature(response, domainName) : true) {
+                return isAssertionSignatureValidationEnabled() ?
+                       validateSignature(getAssertionFromResponse(response), domainName) : true;
             }
         } else if (xmlObject instanceof Assertion) {
-            return validateSignature((Assertion) xmlObject, domainName);
+            return isAssertionSignatureValidationEnabled() ? validateSignature((Assertion) xmlObject, domainName) :
+                   true;
         } else {
             log.error("Only Response and Assertion objects are validated in this authenticator");
-            return false;
         }
+
+        return false;
     }
 
     /**
@@ -379,6 +411,9 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
         if (response == null || response.getSignature() == null) {
             log.error("SAML Response is not signed or response not available. Authentication process will be terminated.");
         } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Validating SAML Response Signature.");
+            }
             isSignatureValid = validateSignature(response.getSignature(), domainName);
         }
         return isSignatureValid;
@@ -396,6 +431,9 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
         if (assertion == null || assertion.getSignature() == null) {
             log.error("SAML Assertion is not signed or assertion not available. Authentication process will be terminated.");
         } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Validating SAML Assertion Signature.");
+            }
             isSignatureValid = validateSignature(assertion.getSignature(), domainName);
         }
         return isSignatureValid;
@@ -411,7 +449,10 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
     private boolean validateSignature(Signature signature, String domainName) {
         boolean isSignatureValid = false;
         try {
-            SignatureValidator validator = null;
+            SAMLSignatureProfileValidator signatureProfileValidator = new SAMLSignatureProfileValidator();
+            signatureProfileValidator.validate(signature);
+
+            SignatureValidator validator;
             if (isVerifySignWithUserDomain()) {
                 validator = new SignatureValidator(Util.getX509CredentialImplForTenant(domainName));
             } else {
@@ -423,7 +464,9 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
             String errorMsg = "Error when creating an X509CredentialImpl instance";
             log.error(errorMsg, e);
         } catch (ValidationException e) {
-            log.warn("Signature validation failed for a SAML2 Reposnse from domain : " + domainName, e);
+            if (log.isDebugEnabled()) {
+                log.debug("SAML Signature validation failed from domain : " + domainName, e);
+            }
         }
         return isSignatureValid;
     }

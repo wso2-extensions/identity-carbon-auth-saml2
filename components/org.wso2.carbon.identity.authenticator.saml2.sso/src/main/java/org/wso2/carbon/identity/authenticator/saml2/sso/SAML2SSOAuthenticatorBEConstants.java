@@ -32,6 +32,7 @@ public class SAML2SSOAuthenticatorBEConstants {
         }
         public static final String AUTH_CONFIG_PARAM_IDP_CERT_ALIAS = "IdPCertAlias";
         public static final String RESPONSE_SIGNATURE_VALIDATION_ENABLED = "ResponseSignatureValidationEnabled";
+        public static final String ASSERTION_SIGNATURE_VALIDATION_ENABLED = "AssertionSignatureValidationEnabled";
         public static final String VALIDATE_SIGNATURE_WITH_USER_DOMAIN = "VerifySignatureWithUserDomain";
         public static final String ROLE_CLAIM_ATTRIBUTE = "RoleClaimAttribute";
         public static final String ATTRIBUTE_VALUE_SEPARATOR = "AttributeValueSeparator";
