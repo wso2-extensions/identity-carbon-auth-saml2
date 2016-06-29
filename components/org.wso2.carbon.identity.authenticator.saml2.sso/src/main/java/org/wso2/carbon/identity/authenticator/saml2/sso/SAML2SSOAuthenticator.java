@@ -411,6 +411,9 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
         if (response == null || response.getSignature() == null) {
             log.error("SAML Response is not signed or response not available. Authentication process will be terminated.");
         } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Validating SAML Response Signature.");
+            }
             isSignatureValid = validateSignature(response.getSignature(), domainName);
         }
         return isSignatureValid;
@@ -428,6 +431,9 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
         if (assertion == null || assertion.getSignature() == null) {
             log.error("SAML Assertion is not signed or assertion not available. Authentication process will be terminated.");
         } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Validating SAML Assertion Signature.");
+            }
             isSignatureValid = validateSignature(assertion.getSignature(), domainName);
         }
         return isSignatureValid;
@@ -458,7 +464,9 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
             String errorMsg = "Error when creating an X509CredentialImpl instance";
             log.error(errorMsg, e);
         } catch (ValidationException e) {
-            log.warn("Signature validation failed for a SAML2 Reposnse from domain : " + domainName, e);
+            if (log.isDebugEnabled()) {
+                log.debug("SAML Signature validation failed from domain : " + domainName, e);
+            }
         }
         return isSignatureValid;
     }
