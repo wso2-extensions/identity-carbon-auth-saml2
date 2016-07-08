@@ -29,7 +29,11 @@
     </description>
     <url>http://wso2.org</url>
 
-
+    <parent>
+        <groupId>org.wso2</groupId>
+        <artifactId>wso2</artifactId>
+        <version>1</version>
+    </parent>
 
     <scm>
         <url>https://github.com/wso2-extensions/identity-carbon-auth-saml2.git</url>
@@ -289,8 +293,7 @@
         <carbon.kernel.package.import.version.range>[4.4.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <identity.framework.version>5.1.1-SNAPSHOT</identity.framework.version>
         <identity.framework.package.import.version.range>[5.0.0, 6.0.0)</identity.framework.package.import.version.range>
-        <identity.carbon.auth.saml2.package.import.version.range>5.0.0, 6.0.0)
-        </identity.carbon.auth.saml2.package.import.version.range>
+        <identity.carbon.auth.saml2.package.import.version.range>[5.0.0, 6.0.0)</identity.carbon.auth.saml2.package.import.version.range>
         <identity.carbon.auth.saml2.package.export.version>${project.version}</identity.carbon.auth.saml2.package.export.version>
         <encoder.wso2.version>1.2.0.wso2v1</encoder.wso2.version>
         <servlet-api.version>2.5</servlet-api.version>
