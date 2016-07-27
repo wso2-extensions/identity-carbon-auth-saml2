@@ -23,7 +23,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
-import org.opensaml.common.xml.SAMLConstants;
 import org.opensaml.saml2.core.Assertion;
 import org.opensaml.saml2.core.Attribute;
 import org.opensaml.saml2.core.AttributeStatement;
@@ -39,7 +38,6 @@ import org.opensaml.xml.validation.ValidationException;
 import org.osgi.framework.BundleContext;
 import org.osgi.util.tracker.ServiceTracker;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -62,8 +60,6 @@ import org.wso2.carbon.utils.AuthenticationObserver;
 import org.wso2.carbon.utils.ServerConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
@@ -75,6 +71,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
 
@@ -190,9 +188,7 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
     private void handleAuthenticationStarted(int tenantId) {
         BundleContext bundleContext = dataHolder.getBundleContext();
         if (bundleContext != null) {
-            ServiceTracker tracker =
-                    new ServiceTracker(bundleContext,
-                            AuthenticationObserver.class.getName(), null);
+            ServiceTracker tracker = new ServiceTracker(bundleContext, AuthenticationObserver.class.getName(), null);
             tracker.open();
             Object[] services = tracker.getServices();
             if (services != null) {
@@ -207,9 +203,7 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
     private void handleAuthenticationCompleted(int tenantId, boolean isSuccessful) {
         BundleContext bundleContext = dataHolder.getBundleContext();
         if (bundleContext != null) {
-            ServiceTracker tracker =
-                    new ServiceTracker(bundleContext,
-                            AuthenticationObserver.class.getName(), null);
+            ServiceTracker tracker = new ServiceTracker(bundleContext, AuthenticationObserver.class.getName(), null);
             tracker.open();
             Object[] services = tracker.getServices();
             if (services != null) {
@@ -399,13 +393,12 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
 
         if (xmlObject instanceof Response) {
             Response response = (Response) xmlObject;
-            if (isResponseSignatureValidationEnabled() ? validateSignature(response, domainName) : true) {
-                return isAssertionSignatureValidationEnabled() ?
-                       validateSignature(getAssertionFromResponse(response), domainName) : true;
+            if (!isResponseSignatureValidationEnabled() || validateSignature(response, domainName)) {
+                return !isAssertionSignatureValidationEnabled() || validateSignature(getAssertionFromResponse
+                        (response), domainName);
             }
         } else if (xmlObject instanceof Assertion) {
-            return isAssertionSignatureValidationEnabled() ? validateSignature((Assertion) xmlObject, domainName) :
-                   true;
+            return !isAssertionSignatureValidationEnabled() || validateSignature((Assertion) xmlObject, domainName);
         } else {
             log.error("Only Response and Assertion objects are validated in this authenticator");
         }
@@ -423,7 +416,8 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
     private boolean validateSignature(Response response, String domainName) {
         boolean isSignatureValid = false;
         if (response == null || response.getSignature() == null) {
-            log.error("SAML Response is not signed or response not available. Authentication process will be terminated.");
+            log.error("SAML Response is not signed or response not available. Authentication process will be " +
+                    "terminated.");
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Validating SAML Response Signature.");
@@ -443,7 +437,8 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
     private boolean validateSignature(Assertion assertion, String domainName) {
         boolean isSignatureValid = false;
         if (assertion == null || assertion.getSignature() == null) {
-            log.error("SAML Assertion is not signed or assertion not available. Authentication process will be terminated.");
+            log.error("SAML Assertion is not signed or assertion not available. Authentication process will be " +
+                    "terminated.");
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Validating SAML Assertion Signature.");
@@ -467,7 +462,8 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
             SAMLSignatureProfileValidator signatureProfileValidator = new SAMLSignatureProfileValidator();
             signatureProfileValidator.validate(signature);
         } catch (ValidationException e) {
-            String logMsg = "Signature do not confirm to SAML signature profile. Possible XML Signature Wrapping Attack!";
+            String logMsg = "Signature do not confirm to SAML signature profile. Possible XML Signature Wrapping " +
+                    "Attack!";
             AUDIT_LOG.warn(logMsg);
             if (log.isDebugEnabled()) {
                 log.debug(logMsg, e);
@@ -481,7 +477,8 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
             if (isVerifySignWithUserDomain()) {
                 validator = new SignatureValidator(Util.getX509CredentialImplForTenant(domainName));
             } else {
-                validator = new SignatureValidator(Util.getX509CredentialImplForTenant(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME));
+                validator = new SignatureValidator(Util.getX509CredentialImplForTenant(MultitenantConstants
+                        .SUPER_TENANT_DOMAIN_NAME));
             }
             validator.validate(signature);
             isSignatureValid = true;
