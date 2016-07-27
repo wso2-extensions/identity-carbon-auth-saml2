@@ -25,6 +25,7 @@ import org.apache.xerces.util.SecurityManager;
 import org.opensaml.Configuration;
 import org.opensaml.DefaultBootstrap;
 import org.opensaml.common.xml.SAMLConstants;
+import org.opensaml.saml2.core.Assertion;
 import org.opensaml.xml.ConfigurationException;
 import org.opensaml.xml.XMLObject;
 import org.opensaml.xml.io.Unmarshaller;
@@ -106,20 +107,24 @@ public class Util {
             // Check for duplicate samlp:Response
             NodeList list = response.getDOM().getElementsByTagNameNS(SAMLConstants.SAML20P_NS, "Response");
             if (list.getLength() > 0) {
-                log.error("Invalid schema for the SAML2 reponse");
-                throw new SAML2SSOAuthenticatorException("Error occured while processing saml2 response");
+                log.error("Invalid schema for the SAML2 response. Multiple responses detected");
+                throw new SAML2SSOAuthenticatorException("Error occurred while processing saml2 response");
+            }
+
+            NodeList assertionList = response.getDOM().getElementsByTagNameNS(SAMLConstants.SAML20_NS, "Assertion");
+            if (response instanceof Assertion) {
+                if (assertionList.getLength() > 0) {
+                    log.error("Invalid schema for the SAML2 assertion. Multiple assertions detected");
+                    throw new SAML2SSOAuthenticatorException("Error occurred while processing saml2 response");
+                }
+            } else {
+                if (assertionList.getLength() > 1) {
+                    log.error("Invalid schema for the SAML2 response. Multiple assertions detected");
+                    throw new SAML2SSOAuthenticatorException("Error occurred while processing saml2 response");
+                }
             }
             return response;
-        } catch (ParserConfigurationException e) {
-            log.error("Error occured while processing saml2 response");
-            throw new SAML2SSOAuthenticatorException("Error occured while processing saml2 response",e);
-        } catch (SAXException e) {
-            log.error("Error occured while processing saml2 response");
-            throw new SAML2SSOAuthenticatorException("Error occured while processing saml2 response",e);
-        } catch (IOException e) {
-            log.error("Error occured while processing saml2 response");
-            throw new SAML2SSOAuthenticatorException("Error occured while processing saml2 response",e);
-        } catch (UnmarshallingException e) {
+        } catch (ParserConfigurationException | SAXException | IOException | UnmarshallingException e) {
             log.error("Error occured while processing saml2 response");
             throw new SAML2SSOAuthenticatorException("Error occured while processing saml2 response",e);
         }
