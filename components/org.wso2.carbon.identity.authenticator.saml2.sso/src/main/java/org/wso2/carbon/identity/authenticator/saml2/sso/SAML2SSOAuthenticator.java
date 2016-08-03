@@ -60,6 +60,8 @@ import org.wso2.carbon.utils.AuthenticationObserver;
 import org.wso2.carbon.utils.ServerConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
@@ -71,8 +73,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
 
@@ -84,6 +84,7 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
     private static final int DEFAULT_PRIORITY_LEVEL = 3;
     private static final String AUTHENTICATOR_NAME = SAML2SSOAuthenticatorBEConstants.SAML2_SSO_AUTHENTICATOR_NAME;
     private SecureRandom random = new SecureRandom();
+    private int timeStampSkewInSeconds = 300;
 
     public boolean login(AuthnReqDTO authDto) {
         String username = null;
@@ -380,6 +381,53 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
             log.debug("Signature validation is done with super tenant domain");
         }
         return false;
+    }
+
+    /**
+     * Check whether the Assertion validity period validation is enabled or disabled in the authenticators.xml
+     * configuration file
+     *
+     * @return false only if SAML2SSOAuthenticator configuration has the configuration
+     * <Parameter name="VerifyAssertionValidityPeriod">false</Parameter>
+     * Otherwise returns true
+     */
+    private boolean isVerifyAssertionValidityPeriod() {
+        AuthenticatorsConfiguration authenticatorsConfiguration = AuthenticatorsConfiguration.getInstance();
+        AuthenticatorsConfiguration.AuthenticatorConfig authenticatorConfig = authenticatorsConfiguration
+                .getAuthenticatorConfig(AUTHENTICATOR_NAME);
+
+        if (authenticatorConfig != null) {
+            String validateAssertionValidityPeriod = authenticatorConfig.getParameters()
+                    .get(SAML2SSOAuthenticatorBEConstants.PropertyConfig.VERIFY_ASSERTION_VALIDITY_PERIOD);
+            if (Boolean.FALSE.toString().equalsIgnoreCase(validateAssertionValidityPeriod)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Assertion validity period validation is disabled in the configuration");
+                }
+                return false;
+            }
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Assertion validity period validation is enabled in the configuration");
+        }
+        return true;
+    }
+
+    private int getTimeStampSkewInSeconds() {
+        AuthenticatorsConfiguration authenticatorsConfiguration = AuthenticatorsConfiguration.getInstance();
+        AuthenticatorsConfiguration.AuthenticatorConfig authenticatorConfig = authenticatorsConfiguration
+                .getAuthenticatorConfig(AUTHENTICATOR_NAME);
+
+        if (authenticatorConfig != null) {
+            String timeStampSkew = authenticatorConfig.getParameters()
+                    .get(SAML2SSOAuthenticatorBEConstants.PropertyConfig.TIME_STAMP_SKEW);
+            if (timeStampSkew != null) {
+                timeStampSkewInSeconds = Integer.parseInt(timeStampSkew);
+            }
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("TimestampSkew is set to " + timeStampSkewInSeconds + " s.");
+        }
+        return timeStampSkewInSeconds;
     }
 
     /**
@@ -835,34 +883,41 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
      * @throws SAML2SSOAuthenticatorException
      */
     private void validateAssertionValidityPeriod(XMLObject xmlObject) throws SAML2SSOAuthenticatorException {
-        Assertion assertion;
-        if (xmlObject instanceof Response) {
-            assertion = getAssertionFromResponse((Response) xmlObject);
-        } else if (xmlObject instanceof Assertion) {
-            assertion = (Assertion) xmlObject;
-        } else {
-            throw new SAML2SSOAuthenticatorException("Only Response and Assertion objects are validated in this " +
-                    "authenticator");
-        }
+        if (isVerifyAssertionValidityPeriod()) {
+            Assertion assertion;
+            if (xmlObject instanceof Response) {
+                assertion = getAssertionFromResponse((Response) xmlObject);
+            } else if (xmlObject instanceof Assertion) {
+                assertion = (Assertion) xmlObject;
+            } else {
+                throw new SAML2SSOAuthenticatorException(
+                        "Only Response and Assertion objects are validated in this " + "authenticator");
+            }
 
-        if (assertion == null) {
-            throw new SAML2SSOAuthenticatorException("Cannot find a SAML Assertion");
-        }
+            if (assertion == null) {
+                throw new SAML2SSOAuthenticatorException("Cannot find a SAML Assertion");
+            }
 
-        DateTime validFrom = assertion.getConditions().getNotBefore();
-        DateTime validTill = assertion.getConditions().getNotOnOrAfter();
+            if (assertion.getConditions() != null) {
+                DateTime validFrom = assertion.getConditions().getNotBefore();
+                DateTime validTill = assertion.getConditions().getNotOnOrAfter();
+                int timeStampSkewInSeconds = getTimeStampSkewInSeconds();
 
-        if (validFrom != null && validFrom.isAfterNow()) {
-            throw new SAML2SSOAuthenticatorException("Failed to meet SAML Assertion Condition 'Not Before'");
-        }
+                if (validFrom != null && validFrom.minusSeconds(timeStampSkewInSeconds).isAfterNow()) {
+                    throw new SAML2SSOAuthenticatorException("Failed to meet SAML Assertion Condition 'Not Before'");
+                }
 
-        if (validTill != null && validTill.isBeforeNow()) {
-            throw new SAML2SSOAuthenticatorException("Failed to meet SAML Assertion Condition 'Not On Or After'");
-        }
+                if (validTill != null && validTill.plusSeconds(timeStampSkewInSeconds).isBeforeNow()) {
+                    throw new SAML2SSOAuthenticatorException(
+                            "Failed to meet SAML Assertion Condition 'Not On Or After'");
+                }
 
-        if (validFrom != null && validTill != null && validFrom.isAfter(validTill)) {
-            throw new SAML2SSOAuthenticatorException("SAML Assertion Condition 'Not Before' must be less than the " +
-                    "value of 'Not On Or After'");
+                if (validFrom != null && validTill != null && validFrom.isAfter(validTill)) {
+                    throw new SAML2SSOAuthenticatorException(
+                            "SAML Assertion Condition 'Not Before' must be less than the " +
+                                    "value of 'Not On Or After'");
+                }
+            }
         }
     }
 }

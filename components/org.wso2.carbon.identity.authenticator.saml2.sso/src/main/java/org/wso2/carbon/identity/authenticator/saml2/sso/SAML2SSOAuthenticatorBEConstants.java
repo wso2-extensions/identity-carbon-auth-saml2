@@ -34,6 +34,8 @@ public class SAML2SSOAuthenticatorBEConstants {
         public static final String RESPONSE_SIGNATURE_VALIDATION_ENABLED = "ResponseSignatureValidationEnabled";
         public static final String ASSERTION_SIGNATURE_VALIDATION_ENABLED = "AssertionSignatureValidationEnabled";
         public static final String VALIDATE_SIGNATURE_WITH_USER_DOMAIN = "VerifySignatureWithUserDomain";
+        public static final String VERIFY_ASSERTION_VALIDITY_PERIOD = "VerifyAssertionValidityPeriod";
+        public static final String TIME_STAMP_SKEW = "TimestampSkew";
         public static final String ROLE_CLAIM_ATTRIBUTE = "RoleClaimAttribute";
         public static final String ATTRIBUTE_VALUE_SEPARATOR = "AttributeValueSeparator";
 
