@@ -129,6 +129,16 @@
                 <artifactId>servlet-api</artifactId>
                 <version>${servlet-api.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.apache.axis2.wso2</groupId>
+                <artifactId>axis2</artifactId>
+                <version>${axis2.wso2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.axis2.wso2</groupId>
+                <artifactId>axis2-client</artifactId>
+                <version>${axis2.wso2.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -275,6 +285,7 @@
         <module>features/org.wso2.carbon.identity.authenticator.saml2.sso.feature</module>
         <module>features/org.wso2.carbon.identity.authenticator.saml2.sso.server.feature</module>
         <module>features/org.wso2.carbon.identity.authenticator.saml2.sso.ui.feature</module>
+        <module>components/org.wso2.carbon.identity.authenticator.saml2.sso.stub</module>
     </modules>
 
     <properties>
@@ -310,6 +321,7 @@
 
         <imp.pkg.version.javax.servlet>[2.6.0, 3.0.0)</imp.pkg.version.javax.servlet>
         <axis2.osgi.version.range>[1.6.1.wso2v12, 2.0.0)</axis2.osgi.version.range>
+        <axis2.wso2.version>1.6.1.wso2v12</axis2.wso2.version>
         <commons-lang.wso2.osgi.version.range>[2.6.0,3.0.0)</commons-lang.wso2.osgi.version.range>
         <commons-logging.osgi.version.range>[1.2,2.0)</commons-logging.osgi.version.range>
         <osgi.framework.imp.pkg.version.range>[1.7.0, 2.0.0)</osgi.framework.imp.pkg.version.range>
