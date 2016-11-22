@@ -15,6 +15,7 @@
  */
 package org.wso2.carbon.identity.authenticator.saml2.sso.common.builders;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xml.security.signature.XMLSignature;
@@ -49,7 +50,12 @@ public class LogoutRequestBuilder {
         Util.doBootstrap();
         LogoutRequest logoutReq = new org.opensaml.saml2.core.impl.LogoutRequestBuilder().buildObject();
         logoutReq.setID(Util.createID());
-        logoutReq.setDestination(Util.getIdentityProviderSSOServiceURL());
+
+        String destination = Util.getIdentityProviderSLOServiceURL();
+        if (StringUtils.isEmpty(destination)) {
+            destination = Util.getIdentityProviderSSOServiceURL();
+        }
+        logoutReq.setDestination(destination);
 
         DateTime issueInstant = new DateTime();
         logoutReq.setIssueInstant(issueInstant);
