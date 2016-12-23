@@ -27,7 +27,7 @@
     <groupId>org.wso2.carbon.identity.carbon.auth.saml2</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>identity-carbon-auth-saml2</artifactId>
-    <version>5.1.7-SNAPSHOT</version>
+    <version>5.2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WSO2 Carbon - SAML2 Based SSO Authenticator Aggregator Module</name>
     <description>
@@ -311,8 +311,8 @@
 
         <carbon.kernel.version>4.4.7</carbon.kernel.version>
         <carbon.kernel.package.import.version.range>[4.4.0, 5.0.0)</carbon.kernel.package.import.version.range>
-        <identity.framework.version>5.2.0</identity.framework.version>
-        <identity.framework.package.import.version.range>[5.0.0, 6.0.0)</identity.framework.package.import.version.range>
+        <identity.framework.version>5.7.0</identity.framework.version>
+        <identity.framework.package.import.version.range>[5.7.0, 6.0.0)</identity.framework.package.import.version.range>
         <identity.carbon.auth.saml2.package.import.version.range>[5.0.0, 6.0.0)</identity.carbon.auth.saml2.package.import.version.range>
         <identity.carbon.auth.saml2.package.export.version>${project.version}</identity.carbon.auth.saml2.package.export.version>
         <encoder.wso2.version>1.2.0.wso2v1</encoder.wso2.version>
