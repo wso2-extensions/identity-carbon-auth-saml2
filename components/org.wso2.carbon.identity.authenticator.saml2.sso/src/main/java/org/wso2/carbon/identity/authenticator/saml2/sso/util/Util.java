@@ -191,7 +191,7 @@ public class Util {
                     cert = (X509Certificate) keyStoreManager.getPrimaryKeyStore().getCertificate(alias);
                     if (cert == null) {
                         String errorMsg = "Cannot find a certificate with the alias " + alias +
-                                " in the default key store. Please check the 'KeyAlias' property in" +
+                                " in the default key store. Please check the 'IdPCertAlias' property in" +
                                 " the SSO configuration of the authenticators.xml";
                         log.error(errorMsg);
                         throw new SAML2SSOAuthenticatorException(errorMsg);
