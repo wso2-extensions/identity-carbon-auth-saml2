@@ -32,12 +32,14 @@ import org.opensaml.saml2.core.Conditions;
 import org.opensaml.saml2.core.Response;
 import org.opensaml.security.SAMLSignatureProfileValidator;
 import org.opensaml.xml.XMLObject;
+import org.opensaml.xml.schema.XSString;
+import org.opensaml.xml.schema.impl.XSAnyImpl;
+import org.opensaml.xml.schema.impl.XSStringImpl;
 import org.opensaml.xml.signature.Signature;
 import org.opensaml.xml.signature.SignatureValidator;
 import org.opensaml.xml.validation.ValidationException;
 import org.osgi.framework.BundleContext;
 import org.osgi.util.tracker.ServiceTracker;
-import org.w3c.dom.Element;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -60,8 +62,6 @@ import org.wso2.carbon.utils.AuthenticationObserver;
 import org.wso2.carbon.utils.ServerConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
@@ -73,6 +73,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
 
@@ -780,7 +782,7 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
      * @return username
      */
     private String[] getRolesFromAssertion(Assertion assertion) {
-        String[] roles = null;
+        List<String> roles = new ArrayList<>();
         String roleClaim = getRoleClaim();
         List<AttributeStatement> attributeStatementList = assertion.getAttributeStatements();
 
@@ -790,23 +792,54 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
                 for (Attribute attribute : attributesList) {
                     String attributeName = attribute.getName();
                     if (attributeName != null && roleClaim.equals(attributeName)) {
-                        // Assumes role claim appear only once
-                        Element value = attribute.getAttributeValues().get(0).getDOM();
-                        String attributeValue = value.getTextContent();
-
-                        if (log.isDebugEnabled()) {
-                            log.debug("AttributeName : " + attributeName + ", AttributeValue : " + attributeValue);
-                        }
-
-                        roles = attributeValue.split(getAttributeSeperator());
-                        if (log.isDebugEnabled()) {
-                            log.debug("Role list : " + Arrays.toString(roles));
+                        List<XMLObject> attributeValues = attribute.getAttributeValues();
+                        if (attributeValues != null && attributeValues.size() == 1) {
+                            String attributeValueString = getAttributeValue(attributeValues.get(0));
+                            String multiAttributeSeparator = getAttributeSeperator();
+                            String[] attributeValuesArray = attributeValueString.split(multiAttributeSeparator);
+                            if (log.isDebugEnabled()) {
+                                log.debug("Adding attributes for Assertion: " + assertion + " AttributeName : " +
+                                        attributeName + ", AttributeValue : " + Arrays.toString(attributeValuesArray));
+                            }
+                            roles.addAll(Arrays.asList(attributeValuesArray));
+                        } else if (attributeValues != null && attributeValues.size() > 1) {
+                            for (XMLObject attributeValue : attributeValues) {
+                                String attributeValueString = getAttributeValue(attributeValue);
+                                if (log.isDebugEnabled()) {
+                                    log.debug("Adding attributes for Assertion: " + assertion + " AttributeName : " +
+                                            attributeName + ", AttributeValue : " + attributeValue);
+                                }
+                                roles.add(attributeValueString);
+                            }
                         }
                     }
                 }
             }
         }
-        return roles;
+        if (log.isDebugEnabled()) {
+            log.debug("Role list found for assertion: " + assertion + ", roles: " + roles);
+        }
+        return roles.toArray(new String[roles.size()]);
+    }
+
+    private String getAttributeValue(XMLObject attributeValue) {
+        if (attributeValue == null){
+            return null;
+        } else if (attributeValue instanceof XSString){
+            return getStringAttributeValue((XSString) attributeValue);
+        } else if(attributeValue instanceof XSAnyImpl){
+            return getAnyAttributeValue((XSAnyImpl) attributeValue);
+        } else {
+            return attributeValue.toString();
+        }
+    }
+
+    private String getStringAttributeValue(XSString attributeValue) {
+        return attributeValue.getValue();
+    }
+
+    private String getAnyAttributeValue(XSAnyImpl attributeValue) {
+        return attributeValue.getTextContent();
     }
 
     /**
