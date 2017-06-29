@@ -68,7 +68,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -86,7 +85,6 @@ public class Util {
     private static final int ENTITY_EXPANSION_LIMIT = 0;
     private static boolean bootStrapped = false;
     private static Log log = LogFactory.getLog(Util.class);
-    private static Random random = new Random();
     private static String serviceProviderId = null;
     private static String identityProviderSSOServiceURL = null;
     private static Map<String, String> parameters = new HashMap<String, String>();

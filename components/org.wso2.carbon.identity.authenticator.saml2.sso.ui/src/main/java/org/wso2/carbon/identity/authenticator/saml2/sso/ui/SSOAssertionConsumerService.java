@@ -473,11 +473,13 @@ public class SSOAssertionConsumerService extends HttpServlet {
                 Cookie cookie = new Cookie("requestedURI", null);
                 cookie.setPath("/");
                 cookie.setMaxAge(0);
+                cookie.setSecure(true);
                 resp.addCookie(cookie);
             } else if (curCookie.getName().equals(CarbonConstants.REMEMBER_ME_COOKE_NAME)) {
                 Cookie cookie = new Cookie(CarbonConstants.REMEMBER_ME_COOKE_NAME, null);
                 cookie.setPath("/");
                 cookie.setMaxAge(0);
+                cookie.setSecure(true);
                 resp.addCookie(cookie);
             }
         }
