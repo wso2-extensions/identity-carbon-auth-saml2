@@ -459,10 +459,6 @@ public class Util {
 
         fedeartedIdp = cachedIdps.get(federatedDomain);
 
-        if (federatedDomain == null) {
-            fedeartedIdp = parameters.get("Federated_IdP_" + federatedDomain);
-        }
-
         if (fedeartedIdp == null) {
             fedeartedIdp = saml2IdpProperties.getProperty(federatedDomain);
         }
