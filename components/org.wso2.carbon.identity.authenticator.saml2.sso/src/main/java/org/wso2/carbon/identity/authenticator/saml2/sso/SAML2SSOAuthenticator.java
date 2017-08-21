@@ -507,6 +507,7 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
             String errorMsg = "Error when creating an X509CredentialImpl instance";
             log.error(errorMsg, e);
         } catch (ValidationException e) {
+            log.warn("SAML Signature validation failed from domain : " + domainName);
             if (log.isDebugEnabled()) {
                 log.debug("SAML Signature validation failed from domain : " + domainName, e);
             }
