@@ -58,6 +58,7 @@ import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.AuthenticationObserver;
 import org.wso2.carbon.utils.ServerConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
@@ -159,6 +160,7 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
                         "/permission/admin/login", CarbonConstants.UI_PERMISSION_ACTION);
             }
             if (isAuthorized) {
+                UserCoreUtil.setDomainInThreadLocal(null);
                 CarbonAuthenticationUtil.onSuccessAdminLogin(httpSession, username,
                         tenantId, tenantDomain, "SAML2 SSO Authentication");
                 handleAuthenticationCompleted(tenantId, true);
