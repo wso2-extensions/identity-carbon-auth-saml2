@@ -82,6 +82,11 @@
                 <artifactId>org.wso2.carbon.identity.base</artifactId>
                 <version>${identity.framework.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.core</artifactId>
+                <version>${identity.framework.version}</version>
+            </dependency>
 
             <!-- Orbit dependencies -->
             <dependency>

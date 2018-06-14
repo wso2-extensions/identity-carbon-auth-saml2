@@ -20,7 +20,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xerces.impl.Constants;
-import org.apache.xerces.util.SecurityManager;
 import org.apache.xml.security.c14n.Canonicalizer;
 import org.opensaml.Configuration;
 import org.opensaml.DefaultBootstrap;
@@ -55,17 +54,9 @@ import org.w3c.dom.ls.LSSerializer;
 import org.wso2.carbon.core.security.AuthenticatorsConfiguration;
 import org.wso2.carbon.identity.authenticator.saml2.sso.common.builders.SignKeyDataHolder;
 import org.wso2.carbon.identity.authenticator.saml2.sso.common.util.CarbonEntityResolver;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.xml.sax.SAXException;
 
-import javax.xml.XMLConstants;
-import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -78,6 +69,14 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 /**
  * This class contains all the utility methods required by SAML2 SSO Authenticator module.
@@ -89,9 +88,6 @@ public class Util {
 
     private static final char[] charMapping = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
             'k', 'l', 'm', 'n', 'o', 'p'};
-    private static final String SECURITY_MANAGER_PROPERTY = Constants.XERCES_PROPERTY_PREFIX +
-            Constants.SECURITY_MANAGER_PROPERTY;
-    private static final int ENTITY_EXPANSION_LIMIT = 0;
     private static boolean bootStrapped = false;
     private static Log log = LogFactory.getLog(Util.class);
     private static Random random = new Random();
@@ -120,7 +116,7 @@ public class Util {
 
         try {
             doBootstrap();
-            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
             Document document = getDocument(documentBuilderFactory, authReqStr);
             if (isSignedWithComments(document)) {
                 documentBuilderFactory.setIgnoringComments(false);
@@ -178,13 +174,6 @@ public class Util {
 
     private static Document getDocument(DocumentBuilderFactory documentBuilderFactory, String samlString)
             throws IOException, SAXException, ParserConfigurationException {
-
-        documentBuilderFactory.setNamespaceAware(true);
-        documentBuilderFactory.setExpandEntityReferences(false);
-        documentBuilderFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-        SecurityManager securityManager = new SecurityManager();
-        securityManager.setEntityExpansionLimit(ENTITY_EXPANSION_LIMIT);
-        documentBuilderFactory.setAttribute(SECURITY_MANAGER_PROPERTY, securityManager);
 
         DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
         docBuilder.setEntityResolver(new CarbonEntityResolver());
