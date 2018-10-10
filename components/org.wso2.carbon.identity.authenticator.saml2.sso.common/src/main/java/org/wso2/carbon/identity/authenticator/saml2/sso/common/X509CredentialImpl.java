@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -15,14 +15,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.authenticator.saml2.sso.util;
+package org.wso2.carbon.identity.authenticator.saml2.sso.common;
 
 import org.opensaml.xml.security.credential.Credential;
 import org.opensaml.xml.security.credential.CredentialContextSet;
 import org.opensaml.xml.security.credential.UsageType;
 import org.opensaml.xml.security.x509.X509Credential;
 
-import javax.crypto.SecretKey;
 import java.math.BigInteger;
 import java.security.Key;
 import java.security.KeyFactory;
@@ -34,6 +33,7 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Collection;
+import javax.crypto.SecretKey;
 
 /**
  * X509Credential implementation for signature verification of self issued tokens. The key is
@@ -41,7 +41,7 @@ import java.util.Collection;
  */
 public class X509CredentialImpl implements X509Credential {
 
-    private PublicKey publicKey = null;
+    private PublicKey publicKey;
     private X509Certificate signingCert = null;
     private PrivateKey privateKey = null;
 
@@ -55,31 +55,33 @@ public class X509CredentialImpl implements X509Credential {
      */
     public X509CredentialImpl(BigInteger modulus, BigInteger publicExponent)
             throws NoSuchAlgorithmException, InvalidKeySpecException {
+
         RSAPublicKeySpec spec = new RSAPublicKeySpec(modulus, publicExponent);
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         publicKey = keyFactory.generatePublic(spec);
     }
 
     public X509CredentialImpl(X509Certificate cert, Key key) {
+
         publicKey = cert.getPublicKey();
         signingCert = cert;
         privateKey = (PrivateKey) key;
-
     }
 
     /**
      * Retrieves the publicKey
      */
     public PublicKey getPublicKey() {
+
         return publicKey;
     }
 
     public X509Certificate getSigningCert() {
+
         return signingCert;
     }
 
     // ********** Not implemented **************************************************************
-
     public X509Certificate getEntityCertificate() {
         // TODO Auto-generated method stub
         return null;
@@ -116,7 +118,7 @@ public class X509CredentialImpl implements X509Credential {
     }
 
     public PrivateKey getPrivateKey() {
-        // TODO Auto-generated method stub
+
         return privateKey;
     }
 

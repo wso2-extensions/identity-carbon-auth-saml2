@@ -28,15 +28,23 @@ import org.opensaml.saml2.core.Assertion;
 import org.opensaml.saml2.core.Attribute;
 import org.opensaml.saml2.core.AttributeStatement;
 import org.opensaml.saml2.core.AuthnRequest;
+import org.opensaml.saml2.core.EncryptedAssertion;
 import org.opensaml.saml2.core.LogoutRequest;
 import org.opensaml.saml2.core.Response;
+import org.opensaml.saml2.encryption.Decrypter;
 import org.opensaml.xml.ConfigurationException;
 import org.opensaml.xml.XMLObject;
 import org.opensaml.xml.XMLObjectBuilder;
+import org.opensaml.xml.encryption.DecryptionException;
+import org.opensaml.xml.encryption.EncryptedKey;
 import org.opensaml.xml.io.Marshaller;
 import org.opensaml.xml.io.MarshallerFactory;
 import org.opensaml.xml.io.Unmarshaller;
 import org.opensaml.xml.io.UnmarshallerFactory;
+import org.opensaml.xml.security.SecurityHelper;
+import org.opensaml.xml.security.credential.Credential;
+import org.opensaml.xml.security.keyinfo.KeyInfoCredentialResolver;
+import org.opensaml.xml.security.keyinfo.StaticKeyInfoCredentialResolver;
 import org.opensaml.xml.security.x509.X509Credential;
 import org.opensaml.xml.signature.KeyInfo;
 import org.opensaml.xml.signature.Signature;
@@ -52,14 +60,19 @@ import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
 import org.wso2.carbon.core.security.AuthenticatorsConfiguration;
+import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.authenticator.saml2.sso.common.builders.SignKeyDataHolder;
+import org.wso2.carbon.identity.authenticator.saml2.sso.common.internal.SAML2SSOAuthFEDataHolder;
 import org.wso2.carbon.identity.authenticator.saml2.sso.common.util.CarbonEntityResolver;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.xml.sax.SAXException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.security.Key;
+import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
@@ -69,6 +82,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.crypto.SecretKey;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -601,8 +615,21 @@ public class Util {
             assertion = assertions.get(0);
             return getUsernameFromAssertion(assertion);
 
+        } else {
+            List<EncryptedAssertion> encryptedAssertions = response.getEncryptedAssertions();
+            EncryptedAssertion encryptedAssertion;
+            if (encryptedAssertions.size() > 0) {
+                encryptedAssertion = encryptedAssertions.get(0);
+                String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+                try {
+                    assertion = getDecryptedAssertion(encryptedAssertion, tenantDomain);
+                } catch (SAML2SSOUIAuthenticatorException e) {
+                    log.error("Error while obtaining user name from response.");
+                }
+                return getUsernameFromAssertion(assertion);
+            }
+            return null;
         }
-        return null;
     }
 
     /**
@@ -643,6 +670,81 @@ public class Util {
             }
         }
         return assertion.getSubject().getNameID().getValue();
+    }
+
+    /**
+     * Get the X509CredentialImpl object for a particular tenant
+     *
+     * @param domainName domain name
+     * @return X509CredentialImpl object containing the public certificate of that tenant
+     * @throws SAML2SSOUIAuthenticatorException Error when creating X509CredentialImpl object
+     */
+    public static X509CredentialImpl getX509CredentialImplForTenant(String domainName)
+            throws SAML2SSOUIAuthenticatorException {
+        int tenantID = org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
+        KeyStoreManager keyStoreManager = null;
+        // get an instance of the corresponding Key Store Manager instance
+        keyStoreManager = KeyStoreManager.getInstance(tenantID);
+        X509CredentialImpl credentialImpl = null;
+        String alias = SAML2SSOAuthFEDataHolder.getInstance().getIdPCertAlias();
+        Key privateKey;
+        try {
+            if (tenantID != org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID) {
+                // for non zero tenants, load private key from their generated key store
+                KeyStore keystore = keyStoreManager.getKeyStore(generateKSNameFromDomainName(domainName));
+                java.security.cert.X509Certificate cert =
+                        (java.security.cert.X509Certificate) keystore.getCertificate(domainName);
+                String ksName = domainName.trim().replace(".", "-");
+                String jksName = ksName + ".jks";
+                // obtain private key
+                privateKey = keyStoreManager.getPrivateKey(jksName, domainName);
+                credentialImpl = new X509CredentialImpl(cert, privateKey);
+            } else {    // for tenant zero, load the cert corresponding to given alias in authenticators.xml
+                privateKey = keyStoreManager.getDefaultPrivateKey();
+                java.security.cert.X509Certificate cert = null;
+                if (alias != null) {
+                    cert = (java.security.cert.X509Certificate) keyStoreManager.getPrimaryKeyStore().getCertificate(alias);
+                    if (cert == null) {
+                        String errorMsg = "Cannot find a certificate with the alias " + alias +
+                                " in the default key store. Please check the 'IdPCertAlias' property in" +
+                                " the SSO configuration of the authenticators.xml";
+                        throw new SAML2SSOUIAuthenticatorException(errorMsg);
+                    }
+                } else { // if the idpCertAlias is not given, use the default certificate.
+                    cert = keyStoreManager.getDefaultPrimaryCertificate();
+                }
+                credentialImpl = new X509CredentialImpl(cert, privateKey);
+            }
+        } catch (SAML2SSOUIAuthenticatorException e) {
+            String errorMsg = "Error instantiating an X509CredentialImpl object for the public cert.";
+            throw new SAML2SSOUIAuthenticatorException(errorMsg, e);
+        } catch (Exception e) {
+            String errorMsg = "Error while loading the keystores.";
+            throw new SAML2SSOUIAuthenticatorException(errorMsg, e);
+        }
+        return credentialImpl;
+    }
+
+    public static Assertion getDecryptedAssertion(EncryptedAssertion encryptedAssertion, String domainName)
+            throws SAML2SSOUIAuthenticatorException {
+        X509Credential credential = getX509CredentialImplForTenant(domainName);
+        try {
+            KeyInfoCredentialResolver keyResolver = new StaticKeyInfoCredentialResolver(credential);
+            EncryptedKey key = encryptedAssertion.getEncryptedData().getKeyInfo().getEncryptedKeys().get(0);
+            Decrypter decrypter = new Decrypter(null, keyResolver, null);
+            SecretKey dkey = (SecretKey) decrypter.decryptKey(key, encryptedAssertion.getEncryptedData().
+                    getEncryptionMethod().getAlgorithm());
+            Credential shared = SecurityHelper.getSimpleCredential(dkey);
+            decrypter = new Decrypter(new StaticKeyInfoCredentialResolver(shared), null, null);
+            decrypter.setRootInNewDocument(true);
+            return decrypter.decrypt(encryptedAssertion);
+        } catch (DecryptionException e) {
+            throw new SAML2SSOUIAuthenticatorException("Error while decrypting the saml response.", e);
+        }
+    }
+    private static String generateKSNameFromDomainName(String tenantDomain) {
+        String ksName = tenantDomain.trim().replace(".", "-");
+        return (ksName + ".jks");
     }
 
 }

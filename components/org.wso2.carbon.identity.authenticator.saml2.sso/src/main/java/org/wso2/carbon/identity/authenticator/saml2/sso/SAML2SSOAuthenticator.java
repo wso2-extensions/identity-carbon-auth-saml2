@@ -29,6 +29,7 @@ import org.opensaml.saml2.core.AttributeStatement;
 import org.opensaml.saml2.core.Audience;
 import org.opensaml.saml2.core.AudienceRestriction;
 import org.opensaml.saml2.core.Conditions;
+import org.opensaml.saml2.core.EncryptedAssertion;
 import org.opensaml.saml2.core.Response;
 import org.opensaml.security.SAMLSignatureProfileValidator;
 import org.opensaml.xml.XMLObject;
@@ -49,6 +50,7 @@ import org.wso2.carbon.core.services.util.CarbonAuthenticationUtil;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.core.util.PermissionUpdateUtil;
 import org.wso2.carbon.identity.authenticator.saml2.sso.common.SAML2SSOAuthenticatorConstants;
+import org.wso2.carbon.identity.authenticator.saml2.sso.common.SAML2SSOUIAuthenticatorException;
 import org.wso2.carbon.identity.authenticator.saml2.sso.dto.AuthnReqDTO;
 import org.wso2.carbon.identity.authenticator.saml2.sso.internal.SAML2SSOAuthBEDataHolder;
 import org.wso2.carbon.identity.authenticator.saml2.sso.util.Util;
@@ -76,6 +78,9 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+
+import static org.wso2.carbon.identity.authenticator.saml2.sso.common.Util.getDecryptedAssertion;
+import static org.wso2.carbon.identity.authenticator.saml2.sso.common.Util.getX509CredentialImplForTenant;
 
 public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
 
@@ -412,13 +417,17 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
      * @param domainName domain name of the subject
      * @return true, if signature is valid.
      */
-    private boolean validateSignature(XMLObject xmlObject, String domainName) {
+    private boolean validateSignature(XMLObject xmlObject, String domainName) throws SAML2SSOUIAuthenticatorException {
 
         if (xmlObject instanceof Response) {
             Response response = (Response) xmlObject;
             if (!isResponseSignatureValidationEnabled() || validateSignature(response, domainName)) {
-                return !isAssertionSignatureValidationEnabled() || validateSignature(getAssertionFromResponse
-                        (response), domainName);
+                try {
+                    return !isAssertionSignatureValidationEnabled() || validateSignature(getAssertionFromResponse
+                            (response), domainName);
+                } catch (SAML2SSOUIAuthenticatorException e) {
+                    log.error("Error while validating signature.", e);
+                }
             }
         } else if (xmlObject instanceof Assertion) {
             return !isAssertionSignatureValidationEnabled() || validateSignature((Assertion) xmlObject, domainName);
@@ -498,20 +507,19 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
         try {
             SignatureValidator validator;
             if (isVerifySignWithUserDomain()) {
-                validator = new SignatureValidator(Util.getX509CredentialImplForTenant(domainName));
+                validator = new SignatureValidator(getX509CredentialImplForTenant(domainName));
             } else {
-                validator = new SignatureValidator(Util.getX509CredentialImplForTenant(MultitenantConstants
+                validator = new SignatureValidator(getX509CredentialImplForTenant(MultitenantConstants
                         .SUPER_TENANT_DOMAIN_NAME));
             }
             validator.validate(signature);
             isSignatureValid = true;
-        } catch (SAML2SSOAuthenticatorException e) {
-            String errorMsg = "Error when creating an X509CredentialImpl instance";
-            log.error(errorMsg, e);
         } catch (ValidationException e) {
             if (log.isDebugEnabled()) {
                 log.debug("SAML Signature validation failed from domain : " + domainName, e);
             }
+        } catch (SAML2SSOUIAuthenticatorException e) {
+           log.error("Error when creating an X509CredentialImpl instance.", e);
         }
         return isSignatureValid;
     }
@@ -522,13 +530,24 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
      * @param response SAML2 Response
      * @return assertion
      */
-    private Assertion getAssertionFromResponse(Response response) {
+    private Assertion getAssertionFromResponse(Response response) throws SAML2SSOUIAuthenticatorException {
         Assertion assertion = null;
         List<Assertion> assertions = response.getAssertions();
         if (assertions != null && !assertions.isEmpty()) {
             assertion = assertions.get(0);
         } else {
-            log.error("No Assertions found in SAML2 Response");
+            List<EncryptedAssertion> encryptedAssertions = response.getEncryptedAssertions();
+            EncryptedAssertion encryptedAssertion;
+            if (encryptedAssertions.size() > 0) {
+                encryptedAssertion = encryptedAssertions.get(0);
+                try {
+                    String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+                    assertion = getDecryptedAssertion(encryptedAssertion, tenantDomain);
+                } catch (SAML2SSOUIAuthenticatorException e) {
+                    throw new SAML2SSOUIAuthenticatorException("Error while obtaining the assertion from saml response."
+                            , e);
+                }
+            }
         }
         return assertion;
     }
@@ -557,7 +576,13 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
      * @return validity
      */
     public boolean validateAudienceRestrictionInResponse(Response response) {
-        Assertion assertion = getAssertionFromResponse(response);
+        Assertion assertion = null;
+        try {
+            assertion = getAssertionFromResponse(response);
+        } catch (SAML2SSOUIAuthenticatorException e) {
+            String errorMsg = "Error when validating audience restriction in response.";
+            log.error(errorMsg, e);
+        }
         return validateAudienceRestrictionInAssertion(assertion);
     }
 
@@ -890,9 +915,13 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
      */
     private void validateAssertionValidityPeriod(XMLObject xmlObject) throws SAML2SSOAuthenticatorException {
 
-        Assertion assertion;
+        Assertion assertion = null;
         if (xmlObject instanceof Response) {
-            assertion = getAssertionFromResponse((Response) xmlObject);
+            try {
+                assertion = getAssertionFromResponse((Response) xmlObject);
+            } catch (SAML2SSOUIAuthenticatorException e) {
+                log.error("Error while validating assertion validity period.");
+            }
         } else if (xmlObject instanceof Assertion) {
             assertion = (Assertion) xmlObject;
         } else {
