@@ -35,7 +35,11 @@ import org.opensaml.xml.io.UnmarshallingException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.authenticator.saml2.sso.SAML2SSOAuthenticatorException;
+import org.wso2.carbon.identity.authenticator.saml2.sso.internal.SAML2SSOAuthBEDataHolder;
+import org.wso2.carbon.user.core.service.RealmService;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
@@ -48,6 +52,8 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.security.KeyStore;
+import java.security.cert.X509Certificate;
 
 public class Util {
     private Util(){
@@ -123,6 +129,68 @@ public class Util {
                 log.error("Error in bootstrapping the OpenSAML2 library", e);
             }
         }
+    }
+
+    /**
+     * Get the X509CredentialImpl object for a particular tenant
+     *
+     * @param domainName domain name
+     * @return X509CredentialImpl object containing the public certificate of that tenant
+     * @throws org.wso2.carbon.identity.authenticator.saml2.sso.SAML2SSOAuthenticatorException Error when creating X509CredentialImpl object
+     */
+    public static X509CredentialImpl getX509CredentialImplForTenant(String domainName)
+            throws SAML2SSOAuthenticatorException {
+
+        int tenantID = MultitenantConstants.SUPER_TENANT_ID;
+        RealmService realmService = SAML2SSOAuthBEDataHolder.getInstance().getRealmService();
+
+        // get the tenantID
+        if (!domainName.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)) {
+            try {
+                tenantID = realmService.getTenantManager().getTenantId(domainName);
+            } catch (org.wso2.carbon.user.api.UserStoreException e) {
+                String errorMsg = "Error getting the TenantID for the domain name";
+                log.error(errorMsg, e);
+                throw new SAML2SSOAuthenticatorException(errorMsg, e);
+            }
+        }
+
+        KeyStoreManager keyStoreManager = null;
+        // get an instance of the corresponding Key Store Manager instance
+        keyStoreManager = KeyStoreManager.getInstance(tenantID);
+
+        X509CredentialImpl credentialImpl = null;
+        try {
+            if (tenantID != MultitenantConstants.SUPER_TENANT_ID) {
+                // for non zero tenants, load private key from their generated key store
+
+                KeyStore keystore = keyStoreManager.getKeyStore(generateKSNameFromDomainName(domainName));
+                java.security.cert.X509Certificate cert =
+                        (java.security.cert.X509Certificate) keystore.getCertificate(domainName);
+                credentialImpl = new X509CredentialImpl(cert);
+            } else {    // for tenant zero, load the cert corresponding to given alias in authenticators.xml
+                String alias = SAML2SSOAuthBEDataHolder.getInstance().getIdPCertAlias();
+                java.security.cert.X509Certificate cert = null;
+                if (alias != null) {
+                    cert = (X509Certificate) keyStoreManager.getPrimaryKeyStore().getCertificate(alias);
+                    if (cert == null) {
+                        String errorMsg = "Cannot find a certificate with the alias " + alias +
+                                " in the default key store. Please check the 'IdPCertAlias' property in" +
+                                " the SSO configuration of the authenticators.xml";
+                        log.error(errorMsg);
+                        throw new SAML2SSOAuthenticatorException(errorMsg);
+                    }
+                } else { // if the idpCertAlias is not given, use the default certificate.
+                    cert = keyStoreManager.getDefaultPrimaryCertificate();
+                }
+                credentialImpl = new X509CredentialImpl(cert);
+            }
+        } catch (Exception e) {
+            String errorMsg = "Error instantiating an X509CredentialImpl object for the public cert.";
+            log.error(errorMsg, e);
+            throw new SAML2SSOAuthenticatorException(errorMsg, e);
+        }
+        return credentialImpl;
     }
 
     /**

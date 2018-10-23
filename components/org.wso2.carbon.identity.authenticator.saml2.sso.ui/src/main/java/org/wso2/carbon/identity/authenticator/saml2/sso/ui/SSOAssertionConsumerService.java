@@ -22,7 +22,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opensaml.saml2.core.Assertion;
 import org.opensaml.saml2.core.AuthnStatement;
-import org.opensaml.saml2.core.EncryptedAssertion;
 import org.opensaml.saml2.core.LogoutRequest;
 import org.opensaml.saml2.core.LogoutResponse;
 import org.opensaml.saml2.core.Response;
@@ -161,18 +160,6 @@ public class SSOAssertionConsumerService extends HttpServlet {
         Assertion assertion = null;
         if (assertions != null && assertions.size() > 0) {
             assertion = assertions.get(0);
-        } else {
-            List<EncryptedAssertion> encryptedAssertions = samlResponse.getEncryptedAssertions();
-            EncryptedAssertion encryptedAssertion;
-            if (encryptedAssertions.size() > 0) {
-                encryptedAssertion = encryptedAssertions.get(0);
-                try {
-                    String tenantDomain = org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-                    assertion = Util.getDecryptedAssertion(encryptedAssertion, tenantDomain);
-                } catch (SAML2SSOUIAuthenticatorException e) {
-                    throw new SAML2SSOUIAuthenticatorException("Unable to decrypt the SAML Assertion", e);
-                }
-            }
         }
 
         if (assertion == null) {
