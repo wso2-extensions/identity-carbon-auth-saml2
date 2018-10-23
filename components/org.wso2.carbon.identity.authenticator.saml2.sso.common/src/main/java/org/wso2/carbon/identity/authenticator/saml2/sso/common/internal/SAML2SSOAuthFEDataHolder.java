@@ -31,6 +31,7 @@ public class SAML2SSOAuthFEDataHolder {
     private RegistryService registryService;
     private ConfigurationContextService configurationContextService;
     private CarbonSSOSessionManager carbonSSOSessionManager;
+    private String idPCertAlias;
 
     private SAML2SSOAuthFEDataHolder() {
     }
@@ -71,4 +72,15 @@ public class SAML2SSOAuthFEDataHolder {
     public void setCarbonSSOSessionManager(CarbonSSOSessionManager carbonSSOSessionManager) {
         this.carbonSSOSessionManager = carbonSSOSessionManager;
     }
+
+    public String getIdPCertAlias() {
+
+        return idPCertAlias;
+    }
+
+    public void setIdPCertAlias(String idPCertAlias) {
+
+        this.idPCertAlias = idPCertAlias;
+    }
+
 }
