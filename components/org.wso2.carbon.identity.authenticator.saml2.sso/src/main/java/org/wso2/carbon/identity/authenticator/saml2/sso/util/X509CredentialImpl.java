@@ -24,7 +24,6 @@ import org.opensaml.xml.security.x509.X509Credential;
 
 import javax.crypto.SecretKey;
 import java.math.BigInteger;
-import java.security.Key;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -43,7 +42,6 @@ public class X509CredentialImpl implements X509Credential {
 
     private PublicKey publicKey = null;
     private X509Certificate signingCert = null;
-    private PrivateKey privateKey = null;
 
     /**
      * The key is constructed form modulus and exponent.
@@ -60,11 +58,9 @@ public class X509CredentialImpl implements X509Credential {
         publicKey = keyFactory.generatePublic(spec);
     }
 
-    public X509CredentialImpl(X509Certificate cert, Key key) {
+    public X509CredentialImpl(X509Certificate cert) {
         publicKey = cert.getPublicKey();
         signingCert = cert;
-        privateKey = (PrivateKey) key;
-
     }
 
     /**
@@ -117,7 +113,7 @@ public class X509CredentialImpl implements X509Credential {
 
     public PrivateKey getPrivateKey() {
         // TODO Auto-generated method stub
-        return privateKey;
+        return null;
     }
 
     public SecretKey getSecretKey() {
