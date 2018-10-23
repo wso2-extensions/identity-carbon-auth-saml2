@@ -29,6 +29,7 @@ import org.opensaml.saml2.core.AttributeStatement;
 import org.opensaml.saml2.core.Audience;
 import org.opensaml.saml2.core.AudienceRestriction;
 import org.opensaml.saml2.core.Conditions;
+import org.opensaml.saml2.core.EncryptedAssertion;
 import org.opensaml.saml2.core.Response;
 import org.opensaml.security.SAMLSignatureProfileValidator;
 import org.opensaml.xml.XMLObject;
@@ -49,6 +50,7 @@ import org.wso2.carbon.core.services.util.CarbonAuthenticationUtil;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.core.util.PermissionUpdateUtil;
 import org.wso2.carbon.identity.authenticator.saml2.sso.common.SAML2SSOAuthenticatorConstants;
+import org.wso2.carbon.identity.authenticator.saml2.sso.common.SAML2SSOUIAuthenticatorException;
 import org.wso2.carbon.identity.authenticator.saml2.sso.dto.AuthnReqDTO;
 import org.wso2.carbon.identity.authenticator.saml2.sso.internal.SAML2SSOAuthBEDataHolder;
 import org.wso2.carbon.identity.authenticator.saml2.sso.util.Util;
@@ -76,6 +78,8 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+
+import static org.wso2.carbon.identity.authenticator.saml2.sso.common.Util.getDecryptedAssertion;
 
 public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
 
@@ -528,7 +532,17 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
         if (assertions != null && !assertions.isEmpty()) {
             assertion = assertions.get(0);
         } else {
-            log.error("No Assertions found in SAML2 Response");
+            List<EncryptedAssertion> encryptedAssertions = response.getEncryptedAssertions();
+            EncryptedAssertion encryptedAssertion;
+            if (encryptedAssertions.size() > 0) {
+                encryptedAssertion = encryptedAssertions.get(0);
+                try {
+                    String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+                    assertion = getDecryptedAssertion(encryptedAssertion, tenantDomain);
+                } catch (SAML2SSOUIAuthenticatorException e) {
+                    log.error("Error while obtaining the assertion from saml response.", e);
+                }
+            }
         }
         return assertion;
     }
