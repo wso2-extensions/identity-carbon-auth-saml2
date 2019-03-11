@@ -315,9 +315,9 @@
         <joda.wso2.version>2.9.4.wso2v1</joda.wso2.version>
         <joda.wso2.osgi.version.range>[2.8.2,3.0.0)</joda.wso2.osgi.version.range>
 
-        <carbon.kernel.version>4.4.7</carbon.kernel.version>
+        <carbon.kernel.version>4.4.37</carbon.kernel.version>
         <carbon.kernel.package.import.version.range>[4.4.0, 5.0.0)</carbon.kernel.package.import.version.range>
-        <identity.framework.version>5.7.0</identity.framework.version>
+        <identity.framework.version>5.12.283</identity.framework.version>
         <identity.framework.package.import.version.range>[5.7.0, 6.0.0)</identity.framework.package.import.version.range>
         <identity.carbon.auth.saml2.package.import.version.range>[5.0.0, 6.0.0)</identity.carbon.auth.saml2.package.import.version.range>
         <identity.carbon.auth.saml2.package.export.version>${project.version}</identity.carbon.auth.saml2.package.export.version>
