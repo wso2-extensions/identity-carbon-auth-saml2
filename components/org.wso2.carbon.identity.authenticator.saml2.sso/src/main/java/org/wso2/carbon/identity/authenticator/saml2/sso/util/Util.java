@@ -39,6 +39,7 @@ import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.authenticator.saml2.sso.SAML2SSOAuthenticatorException;
 import org.wso2.carbon.identity.authenticator.saml2.sso.internal.SAML2SSOAuthBEDataHolder;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.xml.sax.SAXException;
 
@@ -156,11 +157,13 @@ public class Util {
         }
 
         KeyStoreManager keyStoreManager = null;
-        // get an instance of the corresponding Key Store Manager instance
-        keyStoreManager = KeyStoreManager.getInstance(tenantID);
-
         X509CredentialImpl credentialImpl = null;
         try {
+            IdentityTenantUtil.initializeRegistry(tenantID, domainName);
+
+            // get an instance of the corresponding Key Store Manager instance
+            keyStoreManager = KeyStoreManager.getInstance(tenantID);
+
             if (tenantID != MultitenantConstants.SUPER_TENANT_ID) {
                 // for non zero tenants, load private key from their generated key store
 
