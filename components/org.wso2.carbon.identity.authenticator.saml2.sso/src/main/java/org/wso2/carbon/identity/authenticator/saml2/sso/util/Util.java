@@ -32,14 +32,20 @@ import org.opensaml.xml.XMLObject;
 import org.opensaml.xml.io.Unmarshaller;
 import org.opensaml.xml.io.UnmarshallerFactory;
 import org.opensaml.xml.io.UnmarshallingException;
+import org.osgi.framework.BundleContext;
+import org.osgi.util.tracker.ServiceTracker;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.authenticator.saml2.sso.SAML2SSOAuthenticatorException;
 import org.wso2.carbon.identity.authenticator.saml2.sso.internal.SAML2SSOAuthBEDataHolder;
+import org.wso2.carbon.registry.core.service.RegistryService;
+import org.wso2.carbon.registry.core.service.TenantRegistryLoader;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.utils.AuthenticationObserver;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
@@ -62,6 +68,7 @@ public class Util {
 
     private static final int ENTITY_EXPANSION_LIMIT = 0;
     private static boolean bootStrapped = false;
+    private static TenantRegistryLoader tenantRegistryLoader;
     private static Log log = LogFactory.getLog(Util.class);
 
     /**
@@ -156,11 +163,12 @@ public class Util {
         }
 
         KeyStoreManager keyStoreManager = null;
-        // get an instance of the corresponding Key Store Manager instance
-        keyStoreManager = KeyStoreManager.getInstance(tenantID);
-
         X509CredentialImpl credentialImpl = null;
         try {
+            Util.initializeRegistry(tenantID, domainName);
+            // get an instance of the corresponding Key Store Manager instance
+            keyStoreManager = KeyStoreManager.getInstance(tenantID);
+
             if (tenantID != MultitenantConstants.SUPER_TENANT_ID) {
                 // for non zero tenants, load private key from their generated key store
 
@@ -271,6 +279,51 @@ public class Util {
 
         DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
         return docBuilder.parse(new ByteArrayInputStream(samlString.trim().getBytes()));
+    }
+
+    public static void initializeRegistry(int tenantId, String tenantDomain) throws Exception {
+
+        if (tenantId != org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_ID) {
+            try {
+                PrivilegedCarbonContext.startTenantFlow();
+                PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
+                carbonContext.setTenantDomain(tenantDomain, true);
+                BundleContext bundleContext = SAML2SSOAuthBEDataHolder.getInstance().getBundleContext();
+                if (bundleContext != null) {
+                    ServiceTracker tracker = new ServiceTracker(bundleContext, AuthenticationObserver.class.getName(), null);
+                    tracker.open();
+                    Object[] services = tracker.getServices();
+                    if (services != null) {
+                        for (Object service : services) {
+                            ((AuthenticationObserver) service).startedAuthentication(tenantId);
+                        }
+                    }
+                    tracker.close();
+                    try {
+                        Util.getTenantRegistryLoader().loadTenantRegistry(tenantId);
+                    } catch (Exception e) {
+                        throw new Exception("Error loading tenant registry for tenant domain " + tenantDomain, e);
+                    }
+                    try {
+                        RegistryService registryService = SAML2SSOAuthBEDataHolder.getInstance().getRegistryService();
+                        registryService.getGovernanceSystemRegistry(tenantId);
+                    } catch (Exception e) {
+                        throw new Exception("Error obtaining governance system registry for tenant domain " +
+                                tenantDomain, e);
+                    }
+                }
+            } finally {
+                PrivilegedCarbonContext.endTenantFlow();
+            }
+        }
+    }
+
+    public static TenantRegistryLoader getTenantRegistryLoader() {
+        return tenantRegistryLoader;
+    }
+
+    public static void setTenantRegistryLoader(TenantRegistryLoader tenantRegistryLoader) {
+        Util.tenantRegistryLoader = tenantRegistryLoader;
     }
 
 }

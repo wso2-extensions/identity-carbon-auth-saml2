@@ -25,7 +25,9 @@ import org.wso2.carbon.core.security.AuthenticatorsConfiguration;
 import org.wso2.carbon.core.services.authentication.CarbonServerAuthenticator;
 import org.wso2.carbon.identity.authenticator.saml2.sso.SAML2SSOAuthenticator;
 import org.wso2.carbon.identity.authenticator.saml2.sso.SAML2SSOAuthenticatorBEConstants;
+import org.wso2.carbon.identity.authenticator.saml2.sso.util.Util;
 import org.wso2.carbon.registry.core.service.RegistryService;
+import org.wso2.carbon.registry.core.service.TenantRegistryLoader;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.Hashtable;
@@ -41,6 +43,9 @@ import java.util.Map;
  * interface="org.wso2.carbon.user.core.service.RealmService"
  * cardinality="1..1" policy="dynamic" bind="setRealmService"
  * unbind="unsetRealmService"
+ * @scr.reference name="registry.loader.default"
+ * interface="org.wso2.carbon.registry.core.service.TenantRegistryLoader"
+ * cardinality="1..1" policy="dynamic" bind="setTenantRegistryLoader" unbind="unsetTenantRegistryLoader"
  */
 public class SAML2SSOAuthenticatorDSComponent {
 
@@ -104,5 +109,19 @@ public class SAML2SSOAuthenticatorDSComponent {
             }
         }
 
+    }
+
+    protected void setTenantRegistryLoader(TenantRegistryLoader tenantRegistryLoader) {
+        if (log.isDebugEnabled()) {
+            log.debug("Tenant Registry Loader is set in the SAML SSO bundle");
+        }
+        Util.setTenantRegistryLoader(tenantRegistryLoader);
+    }
+
+    protected void unsetTenantRegistryLoader(TenantRegistryLoader tenantRegistryLoader) {
+        if (log.isDebugEnabled()) {
+            log.debug("Tenant Registry Loader is unset in the SAML SSO bundle");
+        }
+        Util.setTenantRegistryLoader(null);
     }
 }
