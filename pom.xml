@@ -304,22 +304,22 @@
     </modules>
 
     <properties>
-        <opensaml2.wso2.version>2.6.4.wso2v5</opensaml2.wso2.version>
+        <opensaml2.wso2.version>2.6.6.wso2v2</opensaml2.wso2.version>
         <opensaml2.wso2.osgi.version.range>[2.6.0,3.0.0)</opensaml2.wso2.osgi.version.range>
         <wss4j.version>1.5.11.wso2v15</wss4j.version>
         <wss4j.xml.security.imp.pkg.version.range>[1.4.2.patched,2.0.0)</wss4j.xml.security.imp.pkg.version.range>
         <wss4j.ws.security.imp.pkg.version.range>[1.5.11,2.0.0)</wss4j.ws.security.imp.pkg.version.range>
         <javax.xml.parsers.import.pkg.version>[0.0.0, 1.0.0)</javax.xml.parsers.import.pkg.version>
-        <inbound.auth.saml.version>5.4.35</inbound.auth.saml.version>
+        <inbound.auth.saml.version>5.5.1</inbound.auth.saml.version>
         <joda.version>2.9.4</joda.version>
         <joda.wso2.version>2.9.4.wso2v1</joda.wso2.version>
         <joda.wso2.osgi.version.range>[2.8.2,3.0.0)</joda.wso2.osgi.version.range>
 
-        <carbon.kernel.version>4.4.37</carbon.kernel.version>
-        <carbon.kernel.package.import.version.range>[4.4.0, 5.0.0)</carbon.kernel.package.import.version.range>
-        <identity.framework.version>5.12.283</identity.framework.version>
-        <identity.framework.package.import.version.range>[5.7.0, 6.0.0)</identity.framework.package.import.version.range>
-        <identity.carbon.auth.saml2.package.import.version.range>[5.0.0, 6.0.0)</identity.carbon.auth.saml2.package.import.version.range>
+        <carbon.kernel.version>4.5.0-m1</carbon.kernel.version>
+        <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
+        <identity.framework.version>5.13.4</identity.framework.version>
+        <identity.framework.package.import.version.range>[5.13.0, 6.0.0)</identity.framework.package.import.version.range>
+        <identity.carbon.auth.saml2.package.import.version.range>[5.3.0, 6.0.0)</identity.carbon.auth.saml2.package.import.version.range>
         <identity.carbon.auth.saml2.package.export.version>${project.version}</identity.carbon.auth.saml2.package.export.version>
         <encoder.wso2.version>1.2.0.wso2v1</encoder.wso2.version>
         <servlet-api.version>2.5</servlet-api.version>
