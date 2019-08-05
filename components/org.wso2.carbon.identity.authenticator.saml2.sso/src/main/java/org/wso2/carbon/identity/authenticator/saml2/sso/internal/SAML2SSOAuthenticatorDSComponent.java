@@ -27,25 +27,23 @@ import org.wso2.carbon.identity.authenticator.saml2.sso.SAML2SSOAuthenticator;
 import org.wso2.carbon.identity.authenticator.saml2.sso.SAML2SSOAuthenticatorBEConstants;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
-
 import java.util.Hashtable;
 import java.util.Map;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 
-/**
- * @scr.component name="saml2.sso.authenticator.dscomponent" immediate="true"
- * @scr.reference name="registry.service"
- * interface="org.wso2.carbon.registry.core.service.RegistryService"
- * cardinality="1..1" policy="dynamic" bind="setRegistryService"
- * unbind="unsetRegistryService"
- * @scr.reference name="user.realmservice.default"
- * interface="org.wso2.carbon.user.core.service.RealmService"
- * cardinality="1..1" policy="dynamic" bind="setRealmService"
- * unbind="unsetRealmService"
- */
+@Component(
+         name = "saml2.sso.authenticator.dscomponent", 
+         immediate = true)
 public class SAML2SSOAuthenticatorDSComponent {
 
     private static final Log log = LogFactory.getLog(SAML2SSOAuthenticatorDSComponent.class);
 
+    @Activate
     protected void activate(ComponentContext ctxt) {
         try {
             SAML2SSOAuthBEDataHolder.getInstance().setBundleContext(ctxt.getBundleContext());
@@ -53,10 +51,8 @@ public class SAML2SSOAuthenticatorDSComponent {
             Hashtable<String, String> props = new Hashtable<String, String>();
             props.put(CarbonConstants.AUTHENTICATOR_TYPE, authenticator.getAuthenticatorName());
             ctxt.getBundleContext().registerService(CarbonServerAuthenticator.class.getName(), authenticator, props);
-
             // Check whether the IdPCertAlias is set for signature validations of Tenant 0.
             configureIdPCertAlias();
-
             if (log.isDebugEnabled()) {
                 log.debug("SAML2 SSO Authenticator BE Bundle activated successfuly.");
             }
@@ -67,11 +63,18 @@ public class SAML2SSOAuthenticatorDSComponent {
         }
     }
 
+    @Deactivate
     protected void deactivate(ComponentContext ctxt) {
         SAML2SSOAuthBEDataHolder.getInstance().setBundleContext(null);
         log.debug("SAML2 SSO Authenticator BE Bundle is deactivated ");
     }
 
+    @Reference(
+             name = "registry.service", 
+             service = org.wso2.carbon.registry.core.service.RegistryService.class, 
+             cardinality = ReferenceCardinality.MANDATORY, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetRegistryService")
     protected void setRegistryService(RegistryService registryService) {
         SAML2SSOAuthBEDataHolder.getInstance().setRegistryService(registryService);
     }
@@ -80,6 +83,12 @@ public class SAML2SSOAuthenticatorDSComponent {
         SAML2SSOAuthBEDataHolder.getInstance().setRegistryService(null);
     }
 
+    @Reference(
+             name = "user.realmservice.default", 
+             service = org.wso2.carbon.user.core.service.RealmService.class, 
+             cardinality = ReferenceCardinality.MANDATORY, 
+             policy = ReferencePolicy.DYNAMIC, 
+             unbind = "unsetRealmService")
     protected void setRealmService(RealmService realmService) {
         SAML2SSOAuthBEDataHolder.getInstance().setRealmService(realmService);
     }
@@ -91,18 +100,14 @@ public class SAML2SSOAuthenticatorDSComponent {
     private void configureIdPCertAlias() {
         // read the meta data required for signature validation for assertions issued for Super Tenant.
         AuthenticatorsConfiguration authenticatorsConfiguration = AuthenticatorsConfiguration.getInstance();
-        AuthenticatorsConfiguration.AuthenticatorConfig authenticatorConfig =
-                authenticatorsConfiguration.getAuthenticatorConfig(
-                        SAML2SSOAuthenticatorBEConstants.SAML2_SSO_AUTHENTICATOR_NAME);
-
+        AuthenticatorsConfiguration.AuthenticatorConfig authenticatorConfig = authenticatorsConfiguration.getAuthenticatorConfig(SAML2SSOAuthenticatorBEConstants.SAML2_SSO_AUTHENTICATOR_NAME);
         if (authenticatorConfig != null) {
             Map<String, String> authenticatorParams = authenticatorConfig.getParameters();
             // if this parameter is set, then use it with tenant 0. Otherwise use the default cert.
             if (authenticatorParams.containsKey(SAML2SSOAuthenticatorBEConstants.PropertyConfig.AUTH_CONFIG_PARAM_IDP_CERT_ALIAS)) {
-                SAML2SSOAuthBEDataHolder.getInstance().setIdPCertAlias(authenticatorParams.get(
-                        SAML2SSOAuthenticatorBEConstants.PropertyConfig.AUTH_CONFIG_PARAM_IDP_CERT_ALIAS));
+                SAML2SSOAuthBEDataHolder.getInstance().setIdPCertAlias(authenticatorParams.get(SAML2SSOAuthenticatorBEConstants.PropertyConfig.AUTH_CONFIG_PARAM_IDP_CERT_ALIAS));
             }
         }
-
     }
 }
+
