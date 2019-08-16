@@ -31,7 +31,7 @@ import org.wso2.carbon.identity.sso.saml.stub.types.SAMLSSORespDTO;
 
 public class SAMLSSOServiceClient {
 
-    private static Log log = LogFactory.getLog(SAMLSSOServiceClient.class);
+    private static final Log log = LogFactory.getLog(SAMLSSOServiceClient.class);
     private IdentitySAMLSSOServiceStub stub;
 
     public SAMLSSOServiceClient(String backendServerURL, ConfigurationContext configCtx) throws AxisFault {

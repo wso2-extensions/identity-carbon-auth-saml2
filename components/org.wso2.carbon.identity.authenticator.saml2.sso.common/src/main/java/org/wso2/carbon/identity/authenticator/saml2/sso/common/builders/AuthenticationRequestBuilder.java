@@ -41,7 +41,7 @@ import org.wso2.carbon.ui.CarbonUIUtil;
  */
 public class AuthenticationRequestBuilder {
 
-    private static Log log = LogFactory.getLog(AuthenticationRequestBuilder.class);
+    private static final Log log = LogFactory.getLog(AuthenticationRequestBuilder.class);
 
     /**
      * Build the issuer object

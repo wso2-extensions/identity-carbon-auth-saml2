@@ -103,7 +103,7 @@ public class Util {
     private static final char[] charMapping = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
             'k', 'l', 'm', 'n', 'o', 'p'};
     private static boolean bootStrapped = false;
-    private static Log log = LogFactory.getLog(Util.class);
+    private static final Log log = LogFactory.getLog(Util.class);
     private static Random random = new Random();
     private static String serviceProviderId = null;
     private static String identityProviderSSOServiceURL = null;

@@ -35,7 +35,7 @@ import org.wso2.carbon.identity.authenticator.saml2.sso.common.Util;
  */
 public class LogoutRequestBuilder {
 
-    private static Log log = LogFactory.getLog(LogoutRequestBuilder.class);
+    private static final Log log = LogFactory.getLog(LogoutRequestBuilder.class);
 
     /**
      * Build the logout request
