@@ -19,39 +19,38 @@ package org.wso2.carbon.identity.authenticator.saml2.sso.common;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.xerces.impl.Constants;
 import org.apache.xml.security.c14n.Canonicalizer;
-import org.opensaml.Configuration;
-import org.opensaml.DefaultBootstrap;
-import org.opensaml.common.impl.SecureRandomIdentifierGenerator;
-import org.opensaml.saml2.core.Assertion;
-import org.opensaml.saml2.core.Attribute;
-import org.opensaml.saml2.core.AttributeStatement;
-import org.opensaml.saml2.core.AuthnRequest;
-import org.opensaml.saml2.core.EncryptedAssertion;
-import org.opensaml.saml2.core.LogoutRequest;
-import org.opensaml.saml2.core.Response;
-import org.opensaml.saml2.encryption.Decrypter;
-import org.opensaml.xml.ConfigurationException;
-import org.opensaml.xml.XMLObject;
-import org.opensaml.xml.XMLObjectBuilder;
-import org.opensaml.xml.encryption.DecryptionException;
-import org.opensaml.xml.encryption.EncryptedKey;
-import org.opensaml.xml.io.Marshaller;
-import org.opensaml.xml.io.MarshallerFactory;
-import org.opensaml.xml.io.Unmarshaller;
-import org.opensaml.xml.io.UnmarshallerFactory;
-import org.opensaml.xml.security.SecurityHelper;
-import org.opensaml.xml.security.credential.Credential;
-import org.opensaml.xml.security.keyinfo.KeyInfoCredentialResolver;
-import org.opensaml.xml.security.keyinfo.StaticKeyInfoCredentialResolver;
-import org.opensaml.xml.security.x509.X509Credential;
-import org.opensaml.xml.signature.KeyInfo;
-import org.opensaml.xml.signature.Signature;
-import org.opensaml.xml.signature.Signer;
-import org.opensaml.xml.signature.X509Certificate;
-import org.opensaml.xml.signature.X509Data;
-import org.opensaml.xml.util.Base64;
+import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
+import org.opensaml.core.config.InitializationService;
+import net.shibboleth.utilities.java.support.security.RandomIdentifierGenerationStrategy;
+import org.opensaml.saml.saml2.core.Assertion;
+import org.opensaml.saml.saml2.core.Attribute;
+import org.opensaml.saml.saml2.core.AttributeStatement;
+import org.opensaml.saml.saml2.core.AuthnRequest;
+import org.opensaml.saml.saml2.core.EncryptedAssertion;
+import org.opensaml.saml.saml2.core.LogoutRequest;
+import org.opensaml.saml.saml2.core.Response;
+import org.opensaml.saml.saml2.encryption.Decrypter;
+import org.opensaml.core.config.InitializationException;
+import org.opensaml.core.xml.XMLObject;
+import org.opensaml.core.xml.XMLObjectBuilder;
+import org.opensaml.xmlsec.encryption.support.DecryptionException;
+import org.opensaml.xmlsec.encryption.EncryptedKey;
+import org.opensaml.core.xml.io.Marshaller;
+import org.opensaml.core.xml.io.MarshallerFactory;
+import org.opensaml.core.xml.io.Unmarshaller;
+import org.opensaml.core.xml.io.UnmarshallerFactory;
+import org.opensaml.security.credential.CredentialSupport;
+import org.opensaml.security.credential.Credential;
+import org.opensaml.xmlsec.keyinfo.KeyInfoCredentialResolver;
+import org.opensaml.xmlsec.keyinfo.impl.StaticKeyInfoCredentialResolver;
+import org.opensaml.security.x509.X509Credential;
+import org.opensaml.xmlsec.signature.KeyInfo;
+import org.opensaml.xmlsec.signature.Signature;
+import org.opensaml.xmlsec.signature.support.Signer;
+import org.opensaml.xmlsec.signature.X509Certificate;
+import org.opensaml.xmlsec.signature.X509Data;
+import net.shibboleth.utilities.java.support.codec.Base64Support;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -73,7 +72,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.Key;
 import java.security.KeyStore;
-import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -137,7 +135,7 @@ public class Util {
                 document = getDocument(documentBuilderFactory, authReqStr);
             }
             Element element = document.getDocumentElement();
-            UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();
+            UnmarshallerFactory unmarshallerFactory = XMLObjectProviderRegistrySupport.getUnmarshallerFactory();
             Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
             return unmarshaller.unmarshall(element);
         } catch (Exception e) {
@@ -208,7 +206,7 @@ public class Util {
             System.setProperty("javax.xml.parsers.DocumentBuilderFactory",
                     "org.apache.xerces.jaxp.DocumentBuilderFactoryImpl");
 
-            MarshallerFactory marshallerFactory = org.opensaml.xml.Configuration
+            MarshallerFactory marshallerFactory = XMLObjectProviderRegistrySupport
                     .getMarshallerFactory();
             Marshaller marshaller = marshallerFactory.getMarshaller(xmlObject);
             Element element = marshaller.marshall(xmlObject);
@@ -235,7 +233,7 @@ public class Util {
      */
     public static String encode(String xmlString) throws Exception {
 
-        String encodedRequestMessage = Base64.encodeBytes(xmlString.getBytes(), Base64.DONT_BREAK_LINES);
+        String encodedRequestMessage = Base64Support.encode(xmlString.getBytes(), Base64Support.UNCHUNKED);
         return encodedRequestMessage.trim();
     }
 
@@ -261,16 +259,57 @@ public class Util {
     }
 
     /**
-     * This method is used to initialize the OpenSAML2 library. It calls the bootstrap method, if it
+     * This method is used to initialize the OpenSAML3 library. It calls the initialize method, if it
      * is not initialized yet.
      */
     public static void doBootstrap() {
         if (!bootStrapped) {
             try {
-                DefaultBootstrap.bootstrap();
+                Thread thread = Thread.currentThread();
+                ClassLoader loader = thread.getContextClassLoader();
+                thread.setContextClassLoader(InitializationService.class.getClassLoader());
+
+                InitializationService.initialize();
+
+                org.opensaml.saml.config.SAMLConfigurationInitializer initializer_1 = new org.opensaml.saml.config.SAMLConfigurationInitializer();
+                initializer_1.init();
+
+                org.opensaml.saml.config.XMLObjectProviderInitializer initializer_2 = new org.opensaml.saml.config.XMLObjectProviderInitializer();
+                initializer_2.init();
+
+                org.opensaml.core.xml.config.XMLObjectProviderInitializer initializer_3 = new org.opensaml.core.xml.config.XMLObjectProviderInitializer();
+                initializer_3.init();
+
+                org.opensaml.core.xml.config.GlobalParserPoolInitializer initializer_4 = new org.opensaml.core.xml.config.GlobalParserPoolInitializer();
+                initializer_4.init();
+
+//                org.opensaml.xmlsec.config.XMLObjectProviderInitializer initializer_5 = new org.opensaml.xmlsec.config.XMLObjectProviderInitializer();
+//                initializer_5.init();
+//
+//                org.opensaml.xmlsec.config.GlobalAlgorithmRegistryInitializer initializer_6 = new org.opensaml.xmlsec.config.GlobalAlgorithmRegistryInitializer();
+//                initializer_6.init();
+//
+//                org.opensaml.xmlsec.config.JavaCryptoValidationInitializer initializer_7 = new org.opensaml.xmlsec.config.JavaCryptoValidationInitializer();
+//                initializer_7.init();
+
+                org.opensaml.xmlsec.config.JavaCryptoValidationInitializer initializer_5 = new org.opensaml.xmlsec.config.JavaCryptoValidationInitializer();
+                initializer_5.init();
+
+                org.opensaml.xmlsec.config.XMLObjectProviderInitializer initializer_6 = new org.opensaml.xmlsec.config.XMLObjectProviderInitializer();
+                initializer_6.init();
+
+                org.opensaml.xmlsec.config.ApacheXMLSecurityInitializer initializer_7 = new org.opensaml.xmlsec.config.ApacheXMLSecurityInitializer();
+                initializer_7.init();
+
+                org.opensaml.xmlsec.config.GlobalSecurityConfigurationInitializer initializer_8 = new org.opensaml.xmlsec.config.GlobalSecurityConfigurationInitializer();
+                initializer_8.init();
+
+                org.opensaml.xmlsec.config.GlobalAlgorithmRegistryInitializer initializer_9 = new org.opensaml.xmlsec.config.GlobalAlgorithmRegistryInitializer();
+                initializer_9.init();
+
                 bootStrapped = true;
-            } catch (ConfigurationException e) {
-                log.error("Error in bootstrapping the OpenSAML2 library", e);
+            } catch (InitializationException e) {
+                log.error("Error in bootstrapping the OpenSAML3 library", e);
             }
         }
     }
@@ -308,7 +347,7 @@ public class Util {
             signatureList.add(signature);
 
             // Marshall and Sign
-            MarshallerFactory marshallerFactory = org.opensaml.xml.Configuration
+            MarshallerFactory marshallerFactory = XMLObjectProviderRegistrySupport
                     .getMarshallerFactory();
             Marshaller marshaller = marshallerFactory.getMarshaller(authnRequest);
 
@@ -356,7 +395,7 @@ public class Util {
             signatureList.add(signature);
 
             // Marshall and Sign
-            MarshallerFactory marshallerFactory = org.opensaml.xml.Configuration
+            MarshallerFactory marshallerFactory = XMLObjectProviderRegistrySupport
                     .getMarshallerFactory();
             Marshaller marshaller = marshallerFactory.getMarshaller(logoutReq);
 
@@ -373,7 +412,7 @@ public class Util {
 
     public static XMLObject buildXMLObject(QName objectQName) throws Exception {
 
-        XMLObjectBuilder builder = org.opensaml.xml.Configuration.getBuilderFactory().getBuilder(
+        XMLObjectBuilder builder = XMLObjectProviderRegistrySupport.getBuilderFactory().getBuilder(
                 objectQName);
         if (builder == null) {
             throw new Exception("Unable to retrieve builder for object QName " + objectQName);
@@ -387,14 +426,9 @@ public class Util {
      *
      * @return generated unique ID
      */
-    public static String createID() throws Exception {
-
-        try {
-            SecureRandomIdentifierGenerator generator = new SecureRandomIdentifierGenerator();
-            return generator.generateIdentifier();
-        } catch (NoSuchAlgorithmException e) {
-            throw new Exception("Error while building Secure Random ID.", e);
-        }
+    public static String createID() {
+        RandomIdentifierGenerationStrategy generator = new RandomIdentifierGenerationStrategy();
+        return generator.generateIdentifier();
     }
 
     /**
@@ -743,7 +777,7 @@ public class Util {
             Decrypter decrypter = new Decrypter(null, keyResolver, null);
             SecretKey dkey = (SecretKey) decrypter.decryptKey(key, encryptedAssertion.getEncryptedData().
                     getEncryptionMethod().getAlgorithm());
-            Credential shared = SecurityHelper.getSimpleCredential(dkey);
+            Credential shared = CredentialSupport.getSimpleCredential(dkey);
             decrypter = new Decrypter(new StaticKeyInfoCredentialResolver(shared), null, null);
             decrypter.setRootInNewDocument(true);
             return decrypter.decrypt(encryptedAssertion);
