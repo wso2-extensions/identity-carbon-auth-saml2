@@ -264,10 +264,12 @@ public class Util {
      */
     public static void doBootstrap() {
         if (!bootStrapped) {
+
+            Thread thread = Thread.currentThread();
+            ClassLoader loader = thread.getContextClassLoader();
+            thread.setContextClassLoader(InitializationService.class.getClassLoader());
+
             try {
-                Thread thread = Thread.currentThread();
-                ClassLoader loader = thread.getContextClassLoader();
-                thread.setContextClassLoader(InitializationService.class.getClassLoader());
 
                 InitializationService.initialize();
 
@@ -282,15 +284,6 @@ public class Util {
 
                 org.opensaml.core.xml.config.GlobalParserPoolInitializer initializer_4 = new org.opensaml.core.xml.config.GlobalParserPoolInitializer();
                 initializer_4.init();
-
-//                org.opensaml.xmlsec.config.XMLObjectProviderInitializer initializer_5 = new org.opensaml.xmlsec.config.XMLObjectProviderInitializer();
-//                initializer_5.init();
-//
-//                org.opensaml.xmlsec.config.GlobalAlgorithmRegistryInitializer initializer_6 = new org.opensaml.xmlsec.config.GlobalAlgorithmRegistryInitializer();
-//                initializer_6.init();
-//
-//                org.opensaml.xmlsec.config.JavaCryptoValidationInitializer initializer_7 = new org.opensaml.xmlsec.config.JavaCryptoValidationInitializer();
-//                initializer_7.init();
 
                 org.opensaml.xmlsec.config.JavaCryptoValidationInitializer initializer_5 = new org.opensaml.xmlsec.config.JavaCryptoValidationInitializer();
                 initializer_5.init();
@@ -310,6 +303,8 @@ public class Util {
                 bootStrapped = true;
             } catch (InitializationException e) {
                 log.error("Error in bootstrapping the OpenSAML3 library", e);
+            } finally {
+                thread.setContextClassLoader(loader);
             }
         }
     }
