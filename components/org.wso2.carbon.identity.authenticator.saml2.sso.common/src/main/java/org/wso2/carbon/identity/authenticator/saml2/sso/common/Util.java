@@ -263,6 +263,7 @@ public class Util {
      * is not initialized yet.
      */
     public static void doBootstrap() {
+
         if (!bootStrapped) {
             try {
                 SAMLInitializer.doBootstrap();
@@ -271,6 +272,7 @@ public class Util {
                 log.error("Error in bootstrapping the OpenSAML3 library", e);
             }
         }
+
     }
 
     public static AuthnRequest setSignature(AuthnRequest authnRequest, String signatureAlgorithm,
@@ -386,8 +388,10 @@ public class Util {
      * @return generated unique ID
      */
     public static String createID() {
+
         RandomIdentifierGenerationStrategy generator = new RandomIdentifierGenerationStrategy();
         return generator.generateIdentifier();
+
     }
 
     /**

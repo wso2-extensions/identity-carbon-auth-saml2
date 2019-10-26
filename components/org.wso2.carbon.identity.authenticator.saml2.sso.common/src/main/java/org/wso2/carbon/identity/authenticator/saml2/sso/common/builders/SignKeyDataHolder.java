@@ -80,8 +80,11 @@ public class SignKeyDataHolder implements X509Credential {
         return Arrays.asList(issuerCerts);
     }
 
+    /***
+     * Get the credential context set.
+     * @return This method is not supported so the return is null.
+     */
     public CredentialContextSet getCredentialContextSet() {
-        // TODO Auto-generated method stub
         return null;
     }
 

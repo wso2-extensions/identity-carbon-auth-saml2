@@ -120,6 +120,7 @@ public class Util {
      * is not initialized yet.
      */
     public static void doBootstrap() {
+
         if (!bootStrapped) {
             try {
                 SAMLInitializer.doBootstrap();
@@ -128,6 +129,7 @@ public class Util {
                 log.error("Error in bootstrapping the OpenSAML3 library", e);
             }
         }
+
     }
 
     /**
