@@ -85,6 +85,10 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.saml.common</groupId>
+            <artifactId>org.wso2.carbon.identity.saml.common.util</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -125,7 +129,8 @@
                             org.wso2.carbon.utils.*; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.ui; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.identity.base; version="${identity.framework.package.import.version.range}",
-                            org.wso2.carbon.identity.core.util; version="${identity.framework.package.import.version.range}"
+                            org.wso2.carbon.identity.core.util; version="${identity.framework.package.import.version.range}",
+                            org.wso2.carbon.identity.saml.common.util.*; version="${saml.common.util.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.authenticator.saml2.sso.common.internal,

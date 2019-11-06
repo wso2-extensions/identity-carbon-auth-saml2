@@ -90,6 +90,13 @@
                 <version>${identity.framework.version}</version>
             </dependency>
 
+            <!--SAML Common Util dependency-->
+            <dependency>
+                <groupId>org.wso2.carbon.identity.saml.common</groupId>
+                <artifactId>org.wso2.carbon.identity.saml.common.util</artifactId>
+                <version>${saml.common.util.version}</version>
+            </dependency>
+
             <!-- Orbit dependencies -->
             <dependency>
                 <groupId>org.wso2.orbit.org.opensaml</groupId>
@@ -332,6 +339,9 @@
         <identity.carbon.auth.saml2.package.export.version>${project.version}</identity.carbon.auth.saml2.package.export.version>
         <encoder.wso2.version>1.2.0.wso2v1</encoder.wso2.version>
         <servlet-api.version>2.5</servlet-api.version>
+
+        <saml.common.util.version>1.0.0-SNAPSHOT</saml.common.util.version>
+        <saml.common.util.version.range>[1.0.0,2.0.0)</saml.common.util.version.range>
 
         <axiom.osgi.version.range>[1.2.11, 2.0.0)</axiom.osgi.version.range>
         <commons-codec.wso2.osgi.version.range>[1.4.0,2.0.0)</commons-codec.wso2.osgi.version.range>

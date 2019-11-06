@@ -63,7 +63,7 @@ import org.wso2.carbon.identity.authenticator.saml2.sso.common.builders.SignKeyD
 import org.wso2.carbon.identity.authenticator.saml2.sso.common.internal.SAML2SSOAuthFEDataHolder;
 import org.wso2.carbon.identity.authenticator.saml2.sso.common.util.CarbonEntityResolver;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.core.util.SAMLInitializer;
+import org.wso2.carbon.identity.saml.common.util.SAMLInitializer;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.xml.sax.SAXException;
 
