@@ -23,22 +23,21 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
-import org.opensaml.saml2.core.Assertion;
-import org.opensaml.saml2.core.Attribute;
-import org.opensaml.saml2.core.AttributeStatement;
-import org.opensaml.saml2.core.Audience;
-import org.opensaml.saml2.core.AudienceRestriction;
-import org.opensaml.saml2.core.Conditions;
-import org.opensaml.saml2.core.EncryptedAssertion;
-import org.opensaml.saml2.core.Response;
-import org.opensaml.security.SAMLSignatureProfileValidator;
-import org.opensaml.xml.XMLObject;
-import org.opensaml.xml.schema.XSString;
-import org.opensaml.xml.schema.impl.XSAnyImpl;
-import org.opensaml.xml.schema.impl.XSStringImpl;
-import org.opensaml.xml.signature.Signature;
-import org.opensaml.xml.signature.SignatureValidator;
-import org.opensaml.xml.validation.ValidationException;
+import org.opensaml.saml.saml2.core.Assertion;
+import org.opensaml.saml.saml2.core.Attribute;
+import org.opensaml.saml.saml2.core.AttributeStatement;
+import org.opensaml.saml.saml2.core.Audience;
+import org.opensaml.saml.saml2.core.AudienceRestriction;
+import org.opensaml.saml.saml2.core.Conditions;
+import org.opensaml.saml.saml2.core.EncryptedAssertion;
+import org.opensaml.saml.saml2.core.Response;
+import org.opensaml.saml.security.impl.SAMLSignatureProfileValidator;
+import org.opensaml.core.xml.XMLObject;
+import org.opensaml.core.xml.schema.XSString;
+import org.opensaml.core.xml.schema.impl.XSAnyImpl;
+import org.opensaml.xmlsec.signature.Signature;
+import org.opensaml.xmlsec.signature.support.SignatureValidator;
+import org.opensaml.xmlsec.signature.support.SignatureException;
 import org.osgi.framework.BundleContext;
 import org.osgi.util.tracker.ServiceTracker;
 import org.wso2.carbon.CarbonConstants;
@@ -488,7 +487,7 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
         try {
             SAMLSignatureProfileValidator signatureProfileValidator = new SAMLSignatureProfileValidator();
             signatureProfileValidator.validate(signature);
-        } catch (ValidationException e) {
+        } catch (SignatureException e) {
             String logMsg = "Signature do not confirm to SAML signature profile. Possible XML Signature Wrapping " +
                     "Attack!";
             AUDIT_LOG.warn(logMsg);
@@ -500,19 +499,18 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
         }
 
         try {
-            SignatureValidator validator;
             if (isVerifySignWithUserDomain()) {
-                validator = new SignatureValidator(Util.getX509CredentialImplForTenant(domainName));
+                SignatureValidator.validate(signature, Util.getX509CredentialImplForTenant(domainName));
             } else {
-                validator = new SignatureValidator(Util.getX509CredentialImplForTenant(MultitenantConstants
+                SignatureValidator.validate(signature, Util.getX509CredentialImplForTenant(MultitenantConstants
                         .SUPER_TENANT_DOMAIN_NAME));
             }
-            validator.validate(signature);
+
             isSignatureValid = true;
         } catch (SAML2SSOAuthenticatorException e) {
             String errorMsg = "Error when creating an X509CredentialImpl instance";
             log.error(errorMsg, e);
-        } catch (ValidationException e) {
+        } catch (SignatureException e) {
             if (log.isDebugEnabled()) {
                 log.debug("SAML Signature validation failed from domain : " + domainName, e);
             }
