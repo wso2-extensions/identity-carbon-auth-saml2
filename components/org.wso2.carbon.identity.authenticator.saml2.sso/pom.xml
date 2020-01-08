@@ -20,7 +20,7 @@
         <groupId>org.wso2.carbon.identity.carbon.auth.saml2</groupId>
         <artifactId>identity-carbon-auth-saml2</artifactId>
         <relativePath>../../pom.xml</relativePath>
-        <version>5.2.16-SNAPSHOT</version>
+        <version>5.4.6-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -40,8 +40,8 @@
             <artifactId>org.wso2.carbon.core.common</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.logging</artifactId>
+            <groupId>org.ops4j.pax.logging</groupId>
+            <artifactId>pax-logging-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon</groupId>
@@ -54,6 +54,16 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.base</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.opensaml</groupId>
+                    <artifactId>opensaml</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.opensaml</groupId>
+                    <artifactId>opensaml1</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.wso2.orbit.org.opensaml</groupId>
@@ -63,14 +73,14 @@
             <groupId>org.wso2.carbon.identity.carbon.auth.saml2</groupId>
             <artifactId>org.wso2.carbon.identity.authenticator.saml2.sso.common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.saml.common</groupId>
+            <artifactId>org.wso2.carbon.identity.saml.common.util</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-scr-plugin</artifactId>
-            </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
@@ -95,6 +105,7 @@
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.logging.*; version="${commons-logging.osgi.version.range}",
                             org.opensaml.*; version="${opensaml2.wso2.osgi.version.range}",
+                            net.shibboleth.utilities.java.support.*; version="${opensaml2.wso2.osgi.version.range}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.osgi.util.tracker; version="${osgi.util.tracker.imp.pkg.version.range}",
@@ -110,6 +121,7 @@
                             org.wso2.carbon.utils.*; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.identity.base; version="${identity.framework.package.import.version.range}",
                             org.wso2.carbon.identity.authenticator.saml2.sso.common; version="${identity.carbon.auth.saml2.package.import.version.range}",
+                            org.wso2.carbon.identity.saml.common.util.*; version="${saml.common.util.version.range}",
                             org.joda.time; version="${joda.wso2.osgi.version.range}"
                         </Import-Package>
                         <Export-Package>

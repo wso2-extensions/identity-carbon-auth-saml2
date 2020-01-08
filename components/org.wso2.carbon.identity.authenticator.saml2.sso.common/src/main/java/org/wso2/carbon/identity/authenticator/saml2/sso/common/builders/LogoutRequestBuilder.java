@@ -20,13 +20,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xml.security.signature.XMLSignature;
 import org.joda.time.DateTime;
-import org.opensaml.saml2.core.Issuer;
-import org.opensaml.saml2.core.LogoutRequest;
-import org.opensaml.saml2.core.NameID;
-import org.opensaml.saml2.core.SessionIndex;
-import org.opensaml.saml2.core.impl.IssuerBuilder;
-import org.opensaml.saml2.core.impl.NameIDBuilder;
-import org.opensaml.saml2.core.impl.SessionIndexBuilder;
+import org.opensaml.saml.saml2.core.Issuer;
+import org.opensaml.saml.saml2.core.LogoutRequest;
+import org.opensaml.saml.saml2.core.NameID;
+import org.opensaml.saml.saml2.core.SessionIndex;
+import org.opensaml.saml.saml2.core.impl.IssuerBuilder;
+import org.opensaml.saml.saml2.core.impl.NameIDBuilder;
+import org.opensaml.saml.saml2.core.impl.SessionIndexBuilder;
 import org.wso2.carbon.identity.authenticator.saml2.sso.common.SAML2SSOAuthenticatorConstants;
 import org.wso2.carbon.identity.authenticator.saml2.sso.common.Util;
 
@@ -35,7 +35,7 @@ import org.wso2.carbon.identity.authenticator.saml2.sso.common.Util;
  */
 public class LogoutRequestBuilder {
 
-    private static Log log = LogFactory.getLog(LogoutRequestBuilder.class);
+    private static final Log log = LogFactory.getLog(LogoutRequestBuilder.class);
 
     /**
      * Build the logout request
@@ -48,7 +48,7 @@ public class LogoutRequestBuilder {
     public LogoutRequest buildLogoutRequest(String subject, String reason, String sessionIndexStr) throws Exception {
         log.info("Building logout request");
         Util.doBootstrap();
-        LogoutRequest logoutReq = new org.opensaml.saml2.core.impl.LogoutRequestBuilder().buildObject();
+        LogoutRequest logoutReq = new org.opensaml.saml.saml2.core.impl.LogoutRequestBuilder().buildObject();
         logoutReq.setID(Util.createID());
 
         String destination = Util.getIdentityProviderSLOServiceURL();

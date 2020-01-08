@@ -15,10 +15,10 @@
  */
 package org.wso2.carbon.identity.authenticator.saml2.sso.common.builders;
 import org.apache.xml.security.signature.XMLSignature;
-import org.opensaml.xml.security.credential.Credential;
-import org.opensaml.xml.security.credential.CredentialContextSet;
-import org.opensaml.xml.security.credential.UsageType;
-import org.opensaml.xml.security.x509.X509Credential;
+import org.opensaml.security.credential.Credential;
+import org.opensaml.security.credential.CredentialContextSet;
+import org.opensaml.security.credential.UsageType;
+import org.opensaml.security.x509.X509Credential;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -80,8 +80,11 @@ public class SignKeyDataHolder implements X509Credential {
         return Arrays.asList(issuerCerts);
     }
 
-    public CredentialContextSet getCredentalContextSet() {
-        // TODO Auto-generated method stub
+    /***
+     * Get the credential context set.
+     * @return This method is not supported so the return is null.
+     */
+    public CredentialContextSet getCredentialContextSet() {
         return null;
     }
 
