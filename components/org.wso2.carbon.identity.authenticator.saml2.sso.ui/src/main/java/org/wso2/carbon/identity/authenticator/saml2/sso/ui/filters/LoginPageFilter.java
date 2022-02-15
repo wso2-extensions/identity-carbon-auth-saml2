@@ -54,7 +54,7 @@ public class LoginPageFilter implements Filter {
             ((HttpServletRequest) servletRequest).getSession().setAttribute(
                     SAML2SSOAuthenticatorConstants.NOTIFICATIONS_ERROR_MSG,
                     "Service Temporarily Unavailable.");
-            ((HttpServletResponse) servletResponse).sendRedirect("../sso-acs/authFailure.jsp");
+            ((HttpServletResponse) servletResponse).sendRedirect("/carbon/sso-acs/authFailure.jsp");
             return;
         }
 
@@ -62,7 +62,7 @@ public class LoginPageFilter implements Filter {
                 SAML2SSOAuthenticatorConstants.HTTP_ATTR_IS_LOGOUT_REQ) != null) {
             if (Boolean.parseBoolean(servletRequest.getParameter(
                     SAML2SSOAuthenticatorConstants.HTTP_ATTR_IS_LOGOUT_REQ))) {
-                String logoutReq = "../sso-acs/redirect_ajaxprocessor.jsp?" +
+                String logoutReq = "/carbon/sso-acs/redirect_ajaxprocessor.jsp?" +
                         SAML2SSOAuthenticatorConstants.LOG_OUT_REQ + "=true";
                 RequestDispatcher reqDispatcher = servletRequest.getRequestDispatcher(logoutReq);
                 reqDispatcher.forward(servletRequest, servletResponse);
@@ -70,7 +70,7 @@ public class LoginPageFilter implements Filter {
         } else if (Util.getLandingPage() != null) {
             ((HttpServletResponse) servletResponse).sendRedirect(Util.getLandingPage());
         } else {
-            RequestDispatcher reqDispatcher = servletRequest.getRequestDispatcher("../sso-acs/redirect_ajaxprocessor.jsp");
+            RequestDispatcher reqDispatcher = servletRequest.getRequestDispatcher("/carbon/sso-acs/redirect_ajaxprocessor.jsp");
             reqDispatcher.forward(servletRequest, servletResponse);
         }
     }
