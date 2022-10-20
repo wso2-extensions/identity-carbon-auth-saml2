@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.authenticator.saml2.sso.ui;
 
 import org.apache.axis2.context.ConfigurationContext;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opensaml.saml.saml2.core.Assertion;
@@ -112,7 +113,7 @@ public class SSOAssertionConsumerService extends HttpServlet {
         // If SAML Response is not present in the redirected req, send the user to an error page.
         if (samlRespString == null) {
             log.error("SAML Response is not present in the request.");
-            handleMalformedResponses(req, resp,
+            handleErrorResponses(req, resp,
                     SAML2SSOAuthenticatorConstants.ErrorMessageConstants.RESPONSE_NOT_PRESENT);
             return;
         }
@@ -139,7 +140,7 @@ public class SSOAssertionConsumerService extends HttpServlet {
             }
         } catch (SAML2SSOUIAuthenticatorException e) {
             log.error("Error when processing the SAML Assertion in the request.", e);
-            handleMalformedResponses(req, resp, SAML2SSOAuthenticatorConstants.ErrorMessageConstants.RESPONSE_MALFORMED);
+            handleErrorResponses(req, resp, SAML2SSOAuthenticatorConstants.ErrorMessageConstants.RESPONSE_MALFORMED);
         }
     }
 
@@ -193,6 +194,10 @@ public class SSOAssertionConsumerService extends HttpServlet {
             if (samlResponse.getStatus() != null &&
                     samlResponse.getStatus().getStatusMessage() != null) {
                 log.error(samlResponse.getStatus().getStatusMessage().getMessage());
+                if (StringUtils.isNotBlank(samlResponse.getStatus().getStatusMessage().getMessage())) {
+                    handleErrorResponses(req, resp, samlResponse.getStatus().getStatusMessage().getMessage());
+                    return;
+                }
             } else {
                 log.error("SAML Assertion not found in the Response.");
             }
@@ -297,7 +302,7 @@ public class SSOAssertionConsumerService extends HttpServlet {
      * @param errorMsg Error message to be displayed in HttpServletResponse.jsp
      * @throws IOException Error when redirecting
      */
-    private void handleMalformedResponses(HttpServletRequest req, HttpServletResponse resp,
+    private void handleErrorResponses(HttpServletRequest req, HttpServletResponse resp,
                                           String errorMsg) throws IOException {
         HttpSession session = req.getSession();
         session.setAttribute(SAML2SSOAuthenticatorConstants.NOTIFICATIONS_ERROR_MSG, errorMsg);
