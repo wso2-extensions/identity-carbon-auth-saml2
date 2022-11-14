@@ -27,7 +27,7 @@
     <groupId>org.wso2.carbon.identity.carbon.auth.saml2</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>identity-carbon-auth-saml2</artifactId>
-    <version>5.6.4</version>
+    <version>6.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WSO2 Carbon - SAML2 Based SSO Authenticator Aggregator Module</name>
     <description>
@@ -39,7 +39,7 @@
         <url>https://github.com/wso2-extensions/identity-carbon-auth-saml2.git</url>
         <developerConnection>scm:git:https://github.com/wso2-extensions/identity-carbon-auth-saml2.git</developerConnection>
         <connection>scm:git:https://github.com/wso2-extensions/identity-carbon-auth-saml2.git</connection>
-        <tag>v5.6.4</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <dependencyManagement>
@@ -268,7 +268,7 @@
         <encoder.wso2.version>1.2.0.wso2v1</encoder.wso2.version>
         <servlet-api.version>2.5</servlet-api.version>
 
-        <saml.common.util.version>1.1.0</saml.common.util.version>
+        <saml.common.util.version>1.3.0</saml.common.util.version>
         <saml.common.util.version.range>[1.0.0,2.0.0)</saml.common.util.version.range>
 
         <axiom.osgi.version.range>[1.2.11, 2.0.0)</axiom.osgi.version.range>
