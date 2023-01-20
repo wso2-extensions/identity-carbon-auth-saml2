@@ -247,7 +247,7 @@
     </modules>
 
     <properties>
-        <opensaml2.wso2.version>3.3.1.wso2v6</opensaml2.wso2.version>
+        <opensaml2.wso2.version>3.3.1.wso2v7</opensaml2.wso2.version>
         <opensaml2.wso2.osgi.version.range>[3.3.1,3.4.0)</opensaml2.wso2.osgi.version.range>
         <wss4j.version>1.5.11.wso2v15</wss4j.version>
         <wss4j.xml.security.imp.pkg.version.range>[2.1.7,2.4.0)</wss4j.xml.security.imp.pkg.version.range>
