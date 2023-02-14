@@ -17,7 +17,6 @@
 package org.wso2.carbon.identity.authenticator.saml2.sso.common.internal;
 
 import org.wso2.carbon.registry.core.service.RegistryService;
-import org.wso2.carbon.ui.CarbonSSOSessionManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
@@ -30,7 +29,6 @@ public class SAML2SSOAuthFEDataHolder {
     private RealmService realmService;
     private RegistryService registryService;
     private ConfigurationContextService configurationContextService;
-    private CarbonSSOSessionManager carbonSSOSessionManager;
     private String idPCertAlias;
 
     private SAML2SSOAuthFEDataHolder() {
@@ -63,14 +61,6 @@ public class SAML2SSOAuthFEDataHolder {
     public void setConfigurationContextService(
             ConfigurationContextService configurationContextService) {
         this.configurationContextService = configurationContextService;
-    }
-
-    public CarbonSSOSessionManager getCarbonSSOSessionManager() {
-        return carbonSSOSessionManager;
-    }
-
-    public void setCarbonSSOSessionManager(CarbonSSOSessionManager carbonSSOSessionManager) {
-        this.carbonSSOSessionManager = carbonSSOSessionManager;
     }
 
     public String getIdPCertAlias() {
