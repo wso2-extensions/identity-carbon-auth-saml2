@@ -32,7 +32,7 @@ import org.opensaml.saml.saml2.core.impl.NameIDPolicyBuilder;
 import org.opensaml.saml.saml2.core.impl.SubjectBuilder;
 import org.wso2.carbon.identity.authenticator.saml2.sso.common.SAML2SSOAuthenticatorConstants;
 import org.wso2.carbon.identity.authenticator.saml2.sso.common.Util;
-import org.wso2.carbon.ui.CarbonUIUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 /**
  * This class is used to generate Authentication Requests. When there is an unauthenticated user
@@ -107,7 +107,7 @@ public class AuthenticationRequestBuilder {
         if (acs != null && acs.trim().length() > 0) {
             authnRequest.setAssertionConsumerServiceURL(acs);
         } else {
-            authnRequest.setAssertionConsumerServiceURL(CarbonUIUtil.getAdminConsoleURL("").replace("carbon/", "acs"));
+            authnRequest.setAssertionConsumerServiceURL(IdentityUtil.getServerURL("/acs/", true, false));
         }
 
         if (subjectName != null) {
