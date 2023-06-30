@@ -53,7 +53,6 @@ import org.wso2.carbon.identity.authenticator.saml2.sso.common.SAML2SSOUIAuthent
 import org.wso2.carbon.identity.authenticator.saml2.sso.dto.AuthnReqDTO;
 import org.wso2.carbon.identity.authenticator.saml2.sso.internal.SAML2SSOAuthBEDataHolder;
 import org.wso2.carbon.identity.authenticator.saml2.sso.util.Util;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -129,7 +128,6 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
             }
 
 
-            RegistryService registryService = dataHolder.getRegistryService();
             RealmService realmService = dataHolder.getRealmService();
             tenantDomain = MultitenantUtils.getTenantDomain(username);
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
@@ -146,8 +144,7 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
             }
 
             username = MultitenantUtils.getTenantAwareUsername(username);
-            UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(registryService,
-                    realmService, tenantDomain);
+            UserRealm realm = (UserRealm) realmService.getTenantUserRealm(tenantId);;
             // Authentication is done
 
             // Starting user provisioning

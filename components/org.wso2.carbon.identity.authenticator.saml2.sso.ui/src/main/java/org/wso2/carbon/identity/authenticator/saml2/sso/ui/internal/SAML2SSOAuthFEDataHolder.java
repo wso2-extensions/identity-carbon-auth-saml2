@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.authenticator.saml2.sso.ui.internal;
 
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.ui.CarbonSSOSessionManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
@@ -30,7 +29,6 @@ public class SAML2SSOAuthFEDataHolder {
     private static SAML2SSOAuthFEDataHolder instance = new SAML2SSOAuthFEDataHolder();
 
     private RealmService realmService;
-    private RegistryService registryService;
     private ConfigurationContextService configurationContextService;
     private CarbonSSOSessionManager carbonSSOSessionManager;
 
@@ -47,14 +45,6 @@ public class SAML2SSOAuthFEDataHolder {
 
     public void setRealmService(RealmService realmService) {
         this.realmService = realmService;
-    }
-
-    public RegistryService getRegistryService() {
-        return registryService;
-    }
-
-    public void setRegistryService(RegistryService registryService) {
-        this.registryService = registryService;
     }
 
     public ConfigurationContextService getConfigurationContextService() {

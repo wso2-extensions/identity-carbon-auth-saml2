@@ -104,8 +104,6 @@
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
 
-                            org.wso2.carbon.registry.core.service; version="${carbon.kernel.registry.imp.pkg.version}",
-
                             org.wso2.carbon; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.core.*; version="${carbon.kernel.package.import.version.range}",
