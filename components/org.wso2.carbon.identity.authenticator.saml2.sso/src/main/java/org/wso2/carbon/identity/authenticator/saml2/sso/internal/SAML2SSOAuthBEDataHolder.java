@@ -18,7 +18,6 @@
 package org.wso2.carbon.identity.authenticator.saml2.sso.internal;
 
 import org.osgi.framework.BundleContext;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
@@ -27,7 +26,6 @@ import org.wso2.carbon.user.core.service.RealmService;
 public class SAML2SSOAuthBEDataHolder {
     private static SAML2SSOAuthBEDataHolder instance = new SAML2SSOAuthBEDataHolder();
 
-    private RegistryService registryService;
     private RealmService realmService;
     private BundleContext bundleContext;
     private String idPCertAlias;
@@ -37,14 +35,6 @@ public class SAML2SSOAuthBEDataHolder {
 
     public static SAML2SSOAuthBEDataHolder getInstance() {
         return instance;
-    }
-
-    public RegistryService getRegistryService() {
-        return registryService;
-    }
-
-    public void setRegistryService(RegistryService registryService) {
-        this.registryService = registryService;
     }
 
     public RealmService getRealmService() {

@@ -24,7 +24,7 @@
 <%@ page import="org.wso2.carbon.identity.authenticator.saml2.sso.common.builders.AuthenticationRequestBuilder" %>
 <%@ page
         import="org.wso2.carbon.identity.authenticator.saml2.sso.common.builders.LogoutRequestBuilder" %>
-<%@ page import="org.wso2.carbon.registry.core.utils.UUIDGenerator" %>
+<%@ page import="java.util.UUID" %>
 <%@ page import="org.wso2.carbon.utils.multitenancy.MultitenantConstants" %>
 <html>
 <head></head>
@@ -40,7 +40,7 @@
                 SAML2SSOAuthenticatorConstants.LOGGED_IN_USER), SAML2SSOAuthenticatorConstants.LOGOUT_USER,
                 (String)request.getSession().getAttribute(SAML2SSOAuthenticatorConstants.IDP_SESSION_INDEX));
         encodedReq = Util.encode(Util.marshall(logoutReq));
-        relayState = UUIDGenerator.generateUUID();
+        relayState = UUID.randomUUID().toString();
         url = Util.getIdentityProviderSLOServiceURL();
         if (url == null) {
         	url = Util.getIdentityProviderSSOServiceURL();
@@ -52,7 +52,7 @@
                  authenticatorsConfiguration.getAuthenticatorConfig(SAML2SSOAuthenticatorConstants.AUTHENTICATOR_NAME); 
          AuthnRequest authRequest = authnReqGenerator.buildAuthenticationRequest(null,authenticatorConfig.getParameters().get(SAML2SSOAuthenticatorConstants.NAMEID_POLICY_FORMAT));;
          encodedReq = Util.encode(Util.marshall(authRequest));
-         relayState = UUIDGenerator.generateUUID();
+         relayState = UUID.randomUUID().toString();
          domain = (String)request.getAttribute(MultitenantConstants.TENANT_DOMAIN);
          url = Util.getIdentityProviderSSOServiceURL();
     }

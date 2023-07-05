@@ -25,7 +25,6 @@ import org.wso2.carbon.core.security.AuthenticatorsConfiguration;
 import org.wso2.carbon.core.services.authentication.CarbonServerAuthenticator;
 import org.wso2.carbon.identity.authenticator.saml2.sso.SAML2SSOAuthenticator;
 import org.wso2.carbon.identity.authenticator.saml2.sso.SAML2SSOAuthenticatorBEConstants;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 import java.util.Hashtable;
 import java.util.Map;
@@ -67,20 +66,6 @@ public class SAML2SSOAuthenticatorDSComponent {
     protected void deactivate(ComponentContext ctxt) {
         SAML2SSOAuthBEDataHolder.getInstance().setBundleContext(null);
         log.debug("SAML2 SSO Authenticator BE Bundle is deactivated ");
-    }
-
-    @Reference(
-             name = "registry.service", 
-             service = org.wso2.carbon.registry.core.service.RegistryService.class, 
-             cardinality = ReferenceCardinality.MANDATORY, 
-             policy = ReferencePolicy.DYNAMIC, 
-             unbind = "unsetRegistryService")
-    protected void setRegistryService(RegistryService registryService) {
-        SAML2SSOAuthBEDataHolder.getInstance().setRegistryService(registryService);
-    }
-
-    protected void unsetRegistryService(RegistryService registryService) {
-        SAML2SSOAuthBEDataHolder.getInstance().setRegistryService(null);
     }
 
     @Reference(

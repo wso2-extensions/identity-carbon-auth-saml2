@@ -24,7 +24,6 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.authenticator.saml2.sso.common.Util;
 import org.wso2.carbon.identity.authenticator.saml2.sso.ui.authenticator.SAML2SSOUIAuthenticator;
 import org.wso2.carbon.identity.authenticator.saml2.sso.ui.filters.LoginPageFilter;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.ui.CarbonSSOSessionManager;
 import org.wso2.carbon.ui.CarbonUIAuthenticator;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -97,20 +96,6 @@ public class SAML2SSOAuthenticatorUIDSComponent {
     @Deactivate
     protected void deactivate(ComponentContext ctxt) {
         log.debug("SAML2 SSO Authenticator FE Bundle is deactivated ");
-    }
-
-    @Reference(
-             name = "registry.service", 
-             service = org.wso2.carbon.registry.core.service.RegistryService.class, 
-             cardinality = ReferenceCardinality.MANDATORY, 
-             policy = ReferencePolicy.DYNAMIC, 
-             unbind = "unsetRegistryService")
-    protected void setRegistryService(RegistryService registryService) {
-        SAML2SSOAuthFEDataHolder.getInstance().setRegistryService(registryService);
-    }
-
-    protected void unsetRegistryService(RegistryService registryService) {
-        SAML2SSOAuthFEDataHolder.getInstance().setRegistryService(null);
     }
 
     @Reference(
