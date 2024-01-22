@@ -41,6 +41,7 @@ import org.wso2.carbon.identity.authenticator.saml2.sso.internal.SAML2SSOAuthBED
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.saml.common.util.SAMLInitializer;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
@@ -204,8 +205,8 @@ public class Util {
      * @return key store file name
      */
     private static String generateKSNameFromDomainName(String tenantDomain) {
-        String ksName = tenantDomain.trim().replace(".", "-");
-        return (ksName + ".jks");
+
+        return KeystoreUtils.getKeyStoreFileLocation(tenantDomain);
     }
 
     /**

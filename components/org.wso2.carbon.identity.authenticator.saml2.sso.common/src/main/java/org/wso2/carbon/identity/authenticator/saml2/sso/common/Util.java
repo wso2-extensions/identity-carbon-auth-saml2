@@ -65,6 +65,7 @@ import org.wso2.carbon.identity.authenticator.saml2.sso.common.util.CarbonEntity
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.saml.common.util.SAMLInitializer;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 import org.xml.sax.SAXException;
 
 import java.io.ByteArrayInputStream;
@@ -692,10 +693,9 @@ public class Util {
                 KeyStore keystore = keyStoreManager.getKeyStore(generateKSNameFromDomainName(domainName));
                 java.security.cert.X509Certificate cert =
                         (java.security.cert.X509Certificate) keystore.getCertificate(domainName);
-                String ksName = domainName.trim().replace(".", "-");
-                String jksName = ksName + ".jks";
+                String fileName = KeystoreUtils.getKeyStoreFileLocation(domainName);
                 // obtain private key
-                privateKey = keyStoreManager.getPrivateKey(jksName, domainName);
+                privateKey = keyStoreManager.getPrivateKey(fileName, domainName);
                 credentialImpl = new X509CredentialImpl(cert, privateKey);
             } else {    // for tenant zero, load the cert corresponding to given alias in authenticators.xml
                 privateKey = keyStoreManager.getDefaultPrivateKey();
@@ -750,8 +750,8 @@ public class Util {
     }
 
     private static String generateKSNameFromDomainName(String tenantDomain) {
-        String ksName = tenantDomain.trim().replace(".", "-");
-        return (ksName + ".jks");
+
+        return KeystoreUtils.getKeyStoreFileLocation(tenantDomain);
     }
 
 }
