@@ -130,6 +130,12 @@
                             version="${identity.carbon.auth.saml2.package.export.version}"
                         </Export-Package>
                         <Carbon-Component>UIBundle</Carbon-Component>
+                        <Provide-Capability>
+                            osgi.service;objectClass=org.wso2.carbon.registry.core.service.RegistryService,
+                            osgi.service;objectClass=org.wso2.carbon.user.core.service.RealmService,
+                            osgi.service;objectClass=org.wso2.carbon.utils.ConfigurationContextService,
+                            osgi.service;objectClass=org.wso2.carbon.ui.CarbonSSOSessionManager
+                        </Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>

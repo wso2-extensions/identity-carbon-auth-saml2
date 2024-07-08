@@ -131,6 +131,10 @@
                             !org.wso2.carbon.identity.authenticator.saml2.sso.stub.*,
                             org.wso2.carbon.identity.authenticator.saml2.sso.*; version="${identity.carbon.auth.saml2.package.export.version}"
                         </Export-Package>
+                        <Provide-Capability>
+                            osgi.service;objectClass=org.wso2.carbon.user.core.service.RealmService,
+                            osgi.service;objectClass=org.wso2.carbon.registry.core.service.RegistryService
+                        </Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>
