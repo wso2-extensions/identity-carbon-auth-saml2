@@ -20,7 +20,7 @@
         <groupId>org.wso2.carbon.identity.carbon.auth.saml2</groupId>
         <artifactId>identity-carbon-auth-saml2</artifactId>
         <relativePath>../../pom.xml</relativePath>
-        <version>5.9.3-SNAPSHOT</version>
+        <version>5.9.6-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -77,6 +77,11 @@
             <groupId>org.wso2.carbon.identity.saml.common</groupId>
             <artifactId>org.wso2.carbon.identity.saml.common.util</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>${jacoco.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -131,6 +136,25 @@
                         </Export-Package>
                     </instructions>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
