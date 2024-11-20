@@ -637,109 +637,114 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
         AuthenticatorsConfiguration.AuthenticatorConfig authenticatorConfig =
                 authenticatorsConfiguration.getAuthenticatorConfig(AUTHENTICATOR_NAME);
 
-        if (authenticatorConfig != null) {
-            Map<String, String> configParameters = authenticatorConfig.getParameters();
+        try {
+            if (authenticatorConfig != null) {
+                Map<String, String> configParameters = authenticatorConfig.getParameters();
 
-            boolean isJITProvisioningEnabled = false;
-            if (configParameters.containsKey(SAML2SSOAuthenticatorBEConstants.PropertyConfig.JIT_USER_PROVISIONING_ENABLED)) {
-                isJITProvisioningEnabled = Boolean.parseBoolean(configParameters.get(SAML2SSOAuthenticatorBEConstants.PropertyConfig.JIT_USER_PROVISIONING_ENABLED));
-            }
-
-            if (isJITProvisioningEnabled) {
-                String userstoreDomain = null;
-                if (configParameters.containsKey(SAML2SSOAuthenticatorBEConstants.PropertyConfig.PROVISIONING_DEFAULT_USERSTORE)) {
-                    userstoreDomain = configParameters.get(SAML2SSOAuthenticatorBEConstants.PropertyConfig.PROVISIONING_DEFAULT_USERSTORE);
+                boolean isJITProvisioningEnabled = false;
+                if (configParameters.containsKey(SAML2SSOAuthenticatorBEConstants.PropertyConfig.JIT_USER_PROVISIONING_ENABLED)) {
+                    isJITProvisioningEnabled = Boolean.parseBoolean(configParameters.get(SAML2SSOAuthenticatorBEConstants.PropertyConfig.JIT_USER_PROVISIONING_ENABLED));
                 }
 
-                UserStoreManager userstore = null;
-
-                // TODO : Get userstore from asserstion
-                // TODO : remove user store domain name from username
-
-                if (userstoreDomain != null && !userstoreDomain.isEmpty()) {
-                    userstore = realm.getUserStoreManager().getSecondaryUserStoreManager(userstoreDomain);
-                }
-
-                // If default user store is invalid or not specified use primary user store
-                if (userstore == null) {
-                    userstore = realm.getUserStoreManager();
-                }
-
-                String[] newRoles = getRoles(xmlObject);
-                // Load default role if asserstion didnt specify roles
-                if (newRoles == null || newRoles.length == 0) {
-                    if (configParameters.containsKey(SAML2SSOAuthenticatorBEConstants.PropertyConfig.PROVISIONING_DEFAULT_ROLE)) {
-                        newRoles = new String[]{configParameters.get(SAML2SSOAuthenticatorBEConstants.PropertyConfig.PROVISIONING_DEFAULT_ROLE)};
+                if (isJITProvisioningEnabled) {
+                    String userstoreDomain = null;
+                    if (configParameters.containsKey(SAML2SSOAuthenticatorBEConstants.PropertyConfig.PROVISIONING_DEFAULT_USERSTORE)) {
+                        userstoreDomain = configParameters.get(SAML2SSOAuthenticatorBEConstants.PropertyConfig.PROVISIONING_DEFAULT_USERSTORE);
                     }
-                }
-                if (newRoles == null) {
-                    newRoles = new String[]{};
-                }
 
+                    UserStoreManager userstore = null;
 
-                if (log.isDebugEnabled()) {
-                    log.debug("User " + username + " contains roles : " + Arrays.toString(newRoles) + " as per response and (default role) config");
-                }
+                    // TODO : Get userstore from asserstion
+                    // TODO : remove user store domain name from username
 
-                // addingRoles = newRoles AND allExistingRoles
-                Collection<String> addingRoles = new ArrayList<String>();
-                Collections.addAll(addingRoles, newRoles);
-                Collection<String> allExistingRoles = Arrays.asList(userstore.getRoleNames());
-                addingRoles.retainAll(allExistingRoles);
+                    if (userstoreDomain != null && !userstoreDomain.isEmpty()) {
+                        userstore = realm.getUserStoreManager().getSecondaryUserStoreManager(userstoreDomain);
+                    }
 
-                if (userstore.isExistingUser(username)) {
-                    // Update user
-                    Collection<String> currentRolesList = Arrays.asList(userstore.getRoleListOfUser(username));
-                    // addingRoles = (newRoles AND existingRoles) - currentRolesList)
-                    addingRoles.removeAll(currentRolesList);
+                    // If default user store is invalid or not specified use primary user store
+                    if (userstore == null) {
+                        userstore = realm.getUserStoreManager();
+                    }
 
-
-                    Collection<String> deletingRoles = new ArrayList<String>();
-                    deletingRoles.addAll(currentRolesList);
-                    // deletingRoles = currentRolesList - newRoles
-                    deletingRoles.removeAll(Arrays.asList(newRoles));
-
-                    // Exclude Internal/everyonerole from deleting role since its cannot be deleted
-                    deletingRoles.remove(realm.getRealmConfiguration().getEveryOneRoleName());
-
-                    // Check for case whether superadmin login
-                    if (userstore.getRealmConfiguration().isPrimary() && username.equals(realm.getRealmConfiguration().getAdminUserName())) {
-                        boolean isSuperAdminRoleRequired = false;
-                        if (configParameters.containsKey(SAML2SSOAuthenticatorBEConstants.PropertyConfig.IS_SUPER_ADMIN_ROLE_REQUIRED)) {
-                            isSuperAdminRoleRequired = Boolean.parseBoolean(configParameters.get(SAML2SSOAuthenticatorBEConstants.PropertyConfig.IS_SUPER_ADMIN_ROLE_REQUIRED));
-                        }
-
-                        // Whether superadmin login without superadmin role is permitted
-                        if (!isSuperAdminRoleRequired && deletingRoles.contains(realm.getRealmConfiguration().getAdminRoleName())) {
-                            // Avoid removing superadmin role from superadmin user.
-                            deletingRoles.remove(realm.getRealmConfiguration().getAdminRoleName());
-                            log.warn("Proceeding with allowing super admin to be logged in, eventhough response doesn't include superadmin role assiged for the superadmin user.");
+                    String[] newRoles = getRoles(xmlObject);
+                    // Load default role if asserstion didnt specify roles
+                    if (newRoles == null || newRoles.length == 0) {
+                        if (configParameters.containsKey(SAML2SSOAuthenticatorBEConstants.PropertyConfig.PROVISIONING_DEFAULT_ROLE)) {
+                            newRoles = new String[]{configParameters.get(SAML2SSOAuthenticatorBEConstants.PropertyConfig.PROVISIONING_DEFAULT_ROLE)};
                         }
                     }
+                    if (newRoles == null) {
+                        newRoles = new String[]{};
+                    }
+
 
                     if (log.isDebugEnabled()) {
-                        log.debug("Deleting roles : " + Arrays.toString(deletingRoles.toArray(new String[0])) + " and Adding roles : " + Arrays.toString(addingRoles.toArray(new String[0])));
+                        log.debug("User " + username + " contains roles : " + Arrays.toString(newRoles) + " as per response and (default role) config");
                     }
-                    userstore.updateRoleListOfUser(username, deletingRoles.toArray(new String[0]), addingRoles.toArray(new String[0]));
-                    if (log.isDebugEnabled()) {
-                        log.debug("User: " + username + " is updated via SAML authenticator with roles : " + Arrays.toString(newRoles));
+
+                    // addingRoles = newRoles AND allExistingRoles
+                    Collection<String> addingRoles = new ArrayList<String>();
+                    Collections.addAll(addingRoles, newRoles);
+                    Collection<String> allExistingRoles = Arrays.asList(userstore.getRoleNames());
+                    addingRoles.retainAll(allExistingRoles);
+
+                    if (userstore.isExistingUser(username)) {
+                        // Update user
+                        Collection<String> currentRolesList = Arrays.asList(userstore.getRoleListOfUser(username));
+                        // addingRoles = (newRoles AND existingRoles) - currentRolesList)
+                        addingRoles.removeAll(currentRolesList);
+
+
+                        Collection<String> deletingRoles = new ArrayList<String>();
+                        deletingRoles.addAll(currentRolesList);
+                        // deletingRoles = currentRolesList - newRoles
+                        deletingRoles.removeAll(Arrays.asList(newRoles));
+
+                        // Exclude Internal/everyonerole from deleting role since its cannot be deleted
+                        deletingRoles.remove(realm.getRealmConfiguration().getEveryOneRoleName());
+
+                        // Check for case whether superadmin login
+                        if (userstore.getRealmConfiguration().isPrimary() && username.equals(realm.getRealmConfiguration().getAdminUserName())) {
+                            boolean isSuperAdminRoleRequired = false;
+                            if (configParameters.containsKey(SAML2SSOAuthenticatorBEConstants.PropertyConfig.IS_SUPER_ADMIN_ROLE_REQUIRED)) {
+                                isSuperAdminRoleRequired = Boolean.parseBoolean(configParameters.get(SAML2SSOAuthenticatorBEConstants.PropertyConfig.IS_SUPER_ADMIN_ROLE_REQUIRED));
+                            }
+
+                            // Whether superadmin login without superadmin role is permitted
+                            if (!isSuperAdminRoleRequired && deletingRoles.contains(realm.getRealmConfiguration().getAdminRoleName())) {
+                                // Avoid removing superadmin role from superadmin user.
+                                deletingRoles.remove(realm.getRealmConfiguration().getAdminRoleName());
+                                log.warn("Proceeding with allowing super admin to be logged in, eventhough response doesn't include superadmin role assiged for the superadmin user.");
+                            }
+                        }
+
+                        if (log.isDebugEnabled()) {
+                            log.debug("Deleting roles : " + Arrays.toString(deletingRoles.toArray(new String[0])) + " and Adding roles : " + Arrays.toString(addingRoles.toArray(new String[0])));
+                        }
+                        userstore.updateRoleListOfUser(username, deletingRoles.toArray(new String[0]), addingRoles.toArray(new String[0]));
+                        if (log.isDebugEnabled()) {
+                            log.debug("User: " + username + " is updated via SAML authenticator with roles : " + Arrays.toString(newRoles));
+                        }
+                    } else {
+                        UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
+                        userstore.addUser(username, generatePassword(username), addingRoles.toArray(new String[0]), null, null);
+                        if (log.isDebugEnabled()) {
+                            log.debug("User: " + username + " is provisioned via SAML authenticator with roles : " + Arrays.toString(addingRoles.toArray(new String[0])));
+                        }
                     }
                 } else {
-                    userstore.addUser(username, generatePassword(username), addingRoles.toArray(new String[0]), null, null);
                     if (log.isDebugEnabled()) {
-                        log.debug("User: " + username + " is provisioned via SAML authenticator with roles : " + Arrays.toString(addingRoles.toArray(new String[0])));
+                        log.debug("User provisioning diabled");
                     }
                 }
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug("User provisioning diabled");
+                    log.debug("Cannot find authenticator config for authenticator : " + AUTHENTICATOR_NAME);
                 }
+                throw new SAML2SSOAuthenticatorException("Cannot find authenticator config for authenticator : " + AUTHENTICATOR_NAME);
             }
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Cannot find authenticator config for authenticator : " + AUTHENTICATOR_NAME);
-            }
-            throw new SAML2SSOAuthenticatorException("Cannot find authenticator config for authenticator : " + AUTHENTICATOR_NAME);
+        } finally {
+            UserCoreUtil.removeSkipPasswordPatternValidationThreadLocal();
         }
     }
 
