@@ -83,10 +83,7 @@ public class SAML2SSOUIAuthenticator extends AbstractCarbonUIAuthenticator {
         ServletContext servletContext = request.getSession().getServletContext();
         ConfigurationContext configContext = (ConfigurationContext) servletContext.getAttribute(
                 CarbonConstants.CONFIGURATION_CONTEXT);
-        String backEndServerURL = request.getParameter("backendURL");
-        if (backEndServerURL == null) {
-            backEndServerURL = CarbonUIUtil.getServerURL(servletContext, session);
-        }
+        String backEndServerURL = CarbonUIUtil.getServerURL(servletContext, session);
         session.setAttribute(CarbonConstants.SERVER_URL, backEndServerURL);
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_AUTH_TOKEN);
 
