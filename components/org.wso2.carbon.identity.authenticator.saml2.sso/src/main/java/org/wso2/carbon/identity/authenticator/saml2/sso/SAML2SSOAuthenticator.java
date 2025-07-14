@@ -53,6 +53,7 @@ import org.wso2.carbon.identity.authenticator.saml2.sso.common.SAML2SSOUIAuthent
 import org.wso2.carbon.identity.authenticator.saml2.sso.dto.AuthnReqDTO;
 import org.wso2.carbon.identity.authenticator.saml2.sso.internal.SAML2SSOAuthBEDataHolder;
 import org.wso2.carbon.identity.authenticator.saml2.sso.util.Util;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -178,7 +179,7 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
             log.error(msg, e);
             return false;
         } finally {
-            if (username != null && username.trim().length() > 0 && AUDIT_LOG.isInfoEnabled()) {
+            if (StringUtils.isNotBlank(username) && AUDIT_LOG.isInfoEnabled() && !LoggerUtils.isEnableV2AuditLogs()) {
 
                 String auditInitiator = username + UserCoreConstants.TENANT_DOMAIN_COMBINER + tenantDomain;
                 String auditData = "";
@@ -244,7 +245,8 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
 
             session.invalidate();
 
-            if (loggedInUser != null && AUDIT_LOG.isInfoEnabled()) {
+            if (StringUtils.isNotBlank(loggedInUser) && AUDIT_LOG.isInfoEnabled() &&
+                    !LoggerUtils.isEnableV2AuditLogs()) {
                 // username in the session is in tenantAware manner
                 String tenantAwareUsername = loggedInUser;
                 String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
@@ -487,7 +489,9 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
         } catch (SignatureException e) {
             String logMsg = "Signature do not confirm to SAML signature profile. Possible XML Signature Wrapping " +
                     "Attack!";
-            AUDIT_LOG.warn(logMsg);
+            if (!LoggerUtils.isEnableV2AuditLogs()) {
+                AUDIT_LOG.warn(logMsg);
+            }
             if (log.isDebugEnabled()) {
                 log.debug(logMsg, e);
             }

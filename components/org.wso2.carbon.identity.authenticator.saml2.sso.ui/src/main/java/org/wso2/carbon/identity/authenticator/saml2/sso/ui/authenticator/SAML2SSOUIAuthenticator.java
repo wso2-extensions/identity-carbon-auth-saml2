@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.authenticator.saml2.sso.ui.authenticator;
 
 import org.apache.axis2.client.ServiceClient;
 import org.apache.axis2.context.ConfigurationContext;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opensaml.saml.saml2.core.Assertion;
@@ -34,6 +35,7 @@ import org.wso2.carbon.identity.authenticator.saml2.sso.common.Util;
 import org.wso2.carbon.identity.authenticator.saml2.sso.ui.client.SAML2SSOAuthenticationClient;
 import org.wso2.carbon.identity.authenticator.saml2.sso.ui.internal.SAML2SSOAuthFEDataHolder;
 import org.wso2.carbon.identity.authenticator.saml2.sso.ui.session.SSOSessionManager;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.ui.AbstractCarbonUIAuthenticator;
 import org.wso2.carbon.ui.CarbonSSOSessionManager;
 import org.wso2.carbon.ui.CarbonUIUtil;
@@ -121,7 +123,7 @@ public class SAML2SSOUIAuthenticator extends AbstractCarbonUIAuthenticator {
             log.error("Error when creating SAML2SSOAuthenticationClient.", e);
             throw new AuthenticationException("Error when creating SAML2SSOAuthenticationClient.", e);
         }
-        if (username != null && username.trim().length() > 0 && AUDIT_LOG.isInfoEnabled()) {
+        if (StringUtils.isNotBlank(username) && AUDIT_LOG.isInfoEnabled() && !LoggerUtils.isEnableV2AuditLogs()) {
             String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
             String tenantDomain = MultitenantUtils.getTenantDomain(username);
 
@@ -200,7 +202,7 @@ public class SAML2SSOUIAuthenticator extends AbstractCarbonUIAuthenticator {
             log.error(msg);
             throw new Exception(msg);
         } finally {
-            if (username != null && username.trim().length() > 0 && AUDIT_LOG.isInfoEnabled()
+            if (StringUtils.isNotBlank(username) && AUDIT_LOG.isInfoEnabled() && !LoggerUtils.isEnableV2AuditLogs()
                     && request != null && "true".equalsIgnoreCase(request.getParameter("logoutcomplete"))) {
                 // use the username built above (when printing info log)
                 String auditInitiator = username;
