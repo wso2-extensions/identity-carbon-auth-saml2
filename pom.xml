@@ -89,6 +89,11 @@
                 <artifactId>org.wso2.carbon.identity.core</artifactId>
                 <version>${identity.framework.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
+                <version>${identity.framework.version}</version>
+            </dependency>
 
             <!--SAML Common Util dependency-->
             <dependency>
@@ -285,8 +290,8 @@
         <carbon.kernel.version>4.9.23</carbon.kernel.version>
         <carbon.kernel.feature.version>4.6.0</carbon.kernel.feature.version>
         <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
-        <identity.framework.version>5.15.0</identity.framework.version>
-        <identity.framework.package.import.version.range>[5.15.0, 8.0.0)</identity.framework.package.import.version.range>
+        <identity.framework.version>7.0.100</identity.framework.version>
+        <identity.framework.package.import.version.range>[7.0.100, 8.0.0)</identity.framework.package.import.version.range>
         <identity.carbon.auth.saml2.package.import.version.range>[5.4.0, 6.0.0)</identity.carbon.auth.saml2.package.import.version.range>
         <identity.carbon.auth.saml2.package.export.version>${project.version}</identity.carbon.auth.saml2.package.export.version>
         <encoder.wso2.version>1.2.0.wso2v1</encoder.wso2.version>
