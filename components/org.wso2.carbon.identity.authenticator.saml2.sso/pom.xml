@@ -130,7 +130,7 @@
                             org.wso2.carbon.identity.core.util.*; version="${identity.framework.package.import.version.range}",
                             org.wso2.carbon.identity.authenticator.saml2.sso.common; version="${identity.carbon.auth.saml2.package.import.version.range}",
                             org.wso2.carbon.identity.saml.common.util.*; version="${saml.common.util.version.range}",
-                            org.wso2.carbon.identity.central.log.mgt; version="${identity.framework.package.import.version.range}",
+                            org.wso2.carbon.identity.central.log.mgt.utils; version="${identity.framework.package.import.version.range}",
                             org.joda.time; version="${joda.wso2.osgi.version.range}"
                         </Import-Package>
                         <Export-Package>
