@@ -280,8 +280,8 @@
         <maven.bundle.plugin.version>3.2.0</maven.bundle.plugin.version>
 
         <imp.pkg.version.javax.servlet>[2.6.0, 3.0.0)</imp.pkg.version.javax.servlet>
-        <axis2.osgi.version.range>[1.6.1.wso2v105, 2.0.0)</axis2.osgi.version.range>
-        <axis2.wso2.version>1.6.1-wso2v105</axis2.wso2.version>
+        <axis2.osgi.version.range>[1.6.1, 2.0.0)</axis2.osgi.version.range>
+        <axis2.wso2.version>1.6.1-wso2v108</axis2.wso2.version>
         <commons-lang.wso2.osgi.version.range>[2.6.0,3.0.0)</commons-lang.wso2.osgi.version.range>
         <commons-logging.osgi.version.range>[1.2.0,2.0.0)</commons-logging.osgi.version.range>
         <osgi.framework.imp.pkg.version.range>[1.7.0, 2.0.0)</osgi.framework.imp.pkg.version.range>
