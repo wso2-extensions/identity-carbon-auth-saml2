@@ -716,7 +716,7 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
                             iterator.remove();
                         }
                     }
-                    if (log.isDebugEnabled() && !preservedApplicationRoles.isEmpty()) {
+                    if (log.isDebugEnabled()) {
                         log.debug("Preserved Application roles from deletion: " + preservedApplicationRoles);
                     }
 
