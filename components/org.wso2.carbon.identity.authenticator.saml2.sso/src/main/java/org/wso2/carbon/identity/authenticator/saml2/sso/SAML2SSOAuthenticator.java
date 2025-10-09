@@ -75,6 +75,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Iterator;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -704,6 +705,20 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
 
                     // Exclude Internal/everyonerole from deleting role since its cannot be deleted
                     deletingRoles.remove(realm.getRealmConfiguration().getEveryOneRoleName());
+
+                    // Exclude Application roles from deleting roles as they need to be preserved
+                    List<String> preservedApplicationRoles = new ArrayList<>();
+                    Iterator<String> iterator = deletingRoles.iterator();
+                    while (iterator.hasNext()) {
+                        String role = iterator.next();
+                        if (role != null && role.startsWith(SAML2SSOAuthenticatorBEConstants.SAML2_SSO_APPLICATION_ROLE_PREFIX)) {
+                            preservedApplicationRoles.add(role);
+                            iterator.remove();
+                        }
+                    }
+                    if (log.isDebugEnabled()) {
+                        log.debug("Preserved Application roles from deletion: " + preservedApplicationRoles);
+                    }
 
                     // Check for case whether superadmin login
                     if (userstore.getRealmConfiguration().isPrimary() && username.equals(realm.getRealmConfiguration().getAdminUserName())) {
