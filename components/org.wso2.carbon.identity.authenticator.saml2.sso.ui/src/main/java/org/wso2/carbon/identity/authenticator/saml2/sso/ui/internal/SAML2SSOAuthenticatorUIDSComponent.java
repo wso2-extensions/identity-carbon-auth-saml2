@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.authenticator.saml2.sso.ui.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.http.whiteboard.HttpWhiteboardConstants;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.authenticator.saml2.sso.common.Util;
 import org.wso2.carbon.identity.authenticator.saml2.sso.ui.authenticator.SAML2SSOUIAuthenticator;
@@ -66,12 +67,22 @@ public class SAML2SSOAuthenticatorUIDSComponent {
                         }
                     };
                     Filter loginPageFilter = new LoginPageFilter();
-                    Dictionary loginPageFilterProps = new Hashtable(2);
-                    Dictionary redirectorParams = new Hashtable(3);
-                    redirectorParams.put("url-pattern", Util.getLoginPage());
-                    redirectorParams.put("associated-filter", loginPageFilter);
-                    redirectorParams.put("servlet-attributes", loginPageFilterProps);
-                    ctxt.getBundleContext().registerService(Servlet.class.getName(), loginServlet, redirectorParams);
+
+                    Dictionary<String, Object> servletProps = new Hashtable<>();
+                    servletProps.put(HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_PATTERN, Util.getLoginPage());
+                    servletProps.put(HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_NAME, "SAML2SSOLoginServlet");
+                    servletProps.put(HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT,
+                            "(osgi.http.whiteboard.context.name=carbonContext)");
+                    ctxt.getBundleContext().registerService(Servlet.class, loginServlet, servletProps);
+
+                    // Register filter
+                    Dictionary<String, Object> filterProps = new Hashtable<>();
+                    filterProps.put(HttpWhiteboardConstants.HTTP_WHITEBOARD_FILTER_SERVLET, "SAML2SSOLoginServlet");
+                    filterProps.put(HttpWhiteboardConstants.HTTP_WHITEBOARD_FILTER_NAME, "LoginPageFilter");
+                    filterProps.put(HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT,
+                            "(osgi.http.whiteboard.context.name=carbonContext)");
+                    ctxt.getBundleContext().registerService(Filter.class, loginPageFilter, filterProps);
+                    
                     // register the UI authenticator
                     SAML2SSOUIAuthenticator authenticator = new SAML2SSOUIAuthenticator();
                     Hashtable<String, String> props = new Hashtable<String, String>();

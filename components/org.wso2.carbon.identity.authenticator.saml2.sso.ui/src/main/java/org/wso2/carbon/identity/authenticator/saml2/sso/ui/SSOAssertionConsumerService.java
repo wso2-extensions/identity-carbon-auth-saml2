@@ -30,6 +30,7 @@ import org.opensaml.saml.saml2.core.Response;
 import org.opensaml.saml.saml2.core.SessionIndex;
 import org.opensaml.saml.saml2.core.Subject;
 import org.opensaml.core.xml.XMLObject;
+import org.osgi.service.component.annotations.Component;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.authenticator.saml2.sso.common.FederatedSSOToken;
 import org.wso2.carbon.identity.authenticator.saml2.sso.common.SAML2SSOAuthenticatorConstants;
@@ -47,6 +48,7 @@ import org.wso2.carbon.ui.CarbonUIUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import javax.servlet.RequestDispatcher;
+import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
@@ -61,6 +63,16 @@ import java.util.List;
 /**
  *
  */
+@Component(
+        service = Servlet.class,
+        immediate = true,
+        property = {
+                "osgi.http.whiteboard.servlet.pattern=/acs",
+                "osgi.http.whiteboard.servlet.name=SSOAssertionConsumerService",
+                "osgi.http.whiteboard.servlet.asyncSupported=true",
+                "osgi.http.whiteboard.context.select=(osgi.http.whiteboard.context.name=carbonContext)"
+        }
+)
 public class SSOAssertionConsumerService extends HttpServlet {
 
     public static final Log log = LogFactory.getLog(SSOAssertionConsumerService.class);
@@ -118,19 +130,12 @@ public class SSOAssertionConsumerService extends HttpServlet {
             return;
         }
 
-//        // If RELAY-STATE is invalid, redirect the users to an error page.
-//        if (!SSOSessionManager.isValidResponse(relayState)) {
-//            handleMalformedResponses(req, resp,
-//                                     SAML2SSOAuthenticatorConstants.ErrorMessageConstants.RESPONSE_INVALID);
-//            return;
-//        }
-
         // Handle valid messages, either SAML Responses or LogoutRequests
         try {
             XMLObject samlObject = Util.unmarshall(Util.decode(samlRespString));
             if (samlObject instanceof LogoutResponse) {   // if it is a logout response, redirect it to login page.
                 String externalLogoutPage = Util.getExternalLogoutPage();
-                if(externalLogoutPage != null && !externalLogoutPage.isEmpty()){
+                if (externalLogoutPage != null && !externalLogoutPage.isEmpty()) {
                     handleExternalLogout(req, resp, externalLogoutPage);
                 } else {
                     resp.sendRedirect(getAdminConsoleURL(req) + "admin/logout_action.jsp?logoutcomplete=true");
@@ -280,7 +285,7 @@ public class SSOAssertionConsumerService extends HttpServlet {
             String url = req.getRequestURI();
             url = url.replace("acs","carbon/admin/login_action.jsp?username=" + URLEncoder.encode(username, "UTF-8"));
 
-            if(sessionIndex != null) {
+            if (sessionIndex != null) {
                 url += "&" + SAML2SSOAuthenticatorConstants.IDP_SESSION_INDEX + "=" + URLEncoder.encode(sessionIndex, "UTF-8");
             }
 

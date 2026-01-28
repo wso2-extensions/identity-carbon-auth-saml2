@@ -31,14 +31,5 @@
             </skip-authentication>
         </menu>
     </menus>
-    
-    <servlets>
-		<servlet id="SSOAssertionConsumerService">
-			<servlet-name>SSOAssertionConsumerService</servlet-name>
-			<url-pattern>/acs</url-pattern>
-			<display-name>SAML SSO Consumer Servlet</display-name>
-			<servlet-class>org.wso2.carbon.identity.authenticator.saml2.sso.ui.SSOAssertionConsumerService</servlet-class>
-		</servlet>
-	</servlets>
 	
 </component>

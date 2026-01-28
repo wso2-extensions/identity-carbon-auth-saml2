@@ -483,8 +483,11 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
     private boolean validateSignature(Signature signature, String domainName) {
         boolean isSignatureValid = false;
 
+        ClassLoader oldCL = Thread.currentThread().getContextClassLoader();
+        ClassLoader opensamlCL = org.opensaml.xmlsec.signature.support.Signer.class.getClassLoader();
         try {
             SAMLSignatureProfileValidator signatureProfileValidator = new SAMLSignatureProfileValidator();
+            Thread.currentThread().setContextClassLoader(opensamlCL);
             signatureProfileValidator.validate(signature);
         } catch (SignatureException e) {
             String logMsg = "Signature do not confirm to SAML signature profile. Possible XML Signature Wrapping " +
@@ -497,12 +500,16 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
             }
 
             return isSignatureValid;
+        } finally {
+            Thread.currentThread().setContextClassLoader(oldCL);
         }
 
         try {
             if (isVerifySignWithUserDomain()) {
+                Thread.currentThread().setContextClassLoader(opensamlCL);
                 SignatureValidator.validate(signature, Util.getX509CredentialImplForTenant(domainName));
             } else {
+                Thread.currentThread().setContextClassLoader(opensamlCL);
                 SignatureValidator.validate(signature, Util.getX509CredentialImplForTenant(MultitenantConstants
                         .SUPER_TENANT_DOMAIN_NAME));
             }
@@ -515,6 +522,8 @@ public class SAML2SSOAuthenticator implements CarbonServerAuthenticator {
             if (log.isDebugEnabled()) {
                 log.debug("SAML Signature validation failed from domain : " + domainName, e);
             }
+        } finally {
+            Thread.currentThread().setContextClassLoader(oldCL);
         }
         return isSignatureValid;
     }
