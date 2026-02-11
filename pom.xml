@@ -27,7 +27,7 @@
     <groupId>org.wso2.carbon.identity.carbon.auth.saml2</groupId>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>identity-carbon-auth-saml2</artifactId>
-    <version>5.9.15-SNAPSHOT</version>
+    <version>5.10.0</version>
     <packaging>pom</packaging>
     <name>WSO2 Carbon - SAML2 Based SSO Authenticator Aggregator Module</name>
     <description>
@@ -39,7 +39,7 @@
         <url>https://github.com/wso2-extensions/identity-carbon-auth-saml2.git</url>
         <developerConnection>scm:git:https://github.com/wso2-extensions/identity-carbon-auth-saml2.git</developerConnection>
         <connection>scm:git:https://github.com/wso2-extensions/identity-carbon-auth-saml2.git</connection>
-        <tag>HEAD</tag>
+        <tag>v5.10.0</tag>
     </scm>
 
     <dependencyManagement>
