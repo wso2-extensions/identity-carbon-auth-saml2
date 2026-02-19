@@ -297,14 +297,14 @@
         <encoder.wso2.version>1.2.0.wso2v1</encoder.wso2.version>
         <servlet-api.version>2.5</servlet-api.version>
 
-        <saml.common.util.version>1.4.0</saml.common.util.version>
+        <saml.common.util.version>1.6.0</saml.common.util.version>
         <saml.common.util.version.range>[1.4.0, 2.0.0)</saml.common.util.version.range>
 
         <axiom.osgi.version.range>[1.2.11, 2.0.0)</axiom.osgi.version.range>
         <commons-codec.wso2.osgi.version.range>[1.4.0,2.0.0)</commons-codec.wso2.osgi.version.range>
         <carbon.base.imp.pkg.version.range>[1.0.0, 2.0.0)</carbon.base.imp.pkg.version.range>
 
-        <carbon.p2.plugin.version>1.5.3</carbon.p2.plugin.version>
+        <carbon.p2.plugin.version>5.5.1</carbon.p2.plugin.version>
         <maven.compiler.plugin.version>2.3.1</maven.compiler.plugin.version>
         <maven.bundle.plugin.version>5.1.9</maven.bundle.plugin.version>
 
