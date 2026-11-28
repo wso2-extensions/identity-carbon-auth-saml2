@@ -25,6 +25,7 @@ public class SAML2SSOAuthenticatorBEConstants {
     public static final String ROLE_ATTRIBUTE_NAME = "http://wso2.org/claims/role";
     public static final String ATTRIBUTE_VALUE_SEPERATER = ",";
 
+    public static final String SAML2_SSO_APPLICATION_ROLE_PREFIX = "Application/";
 
     public class PropertyConfig {
         private PropertyConfig(){
